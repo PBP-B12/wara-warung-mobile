@@ -67,11 +67,6 @@ Untuk itulah WaraWarung hadir, memberikan solusi bagi wisatawan yang ingin meras
 
 *  Melihat *review* dan *rating* menu pada warung yang sudah dikunjungi
 
-####  🧑‍💻 Admin :
-
-*  Melakukan edit menu
-
-*  Melakukan add menu
 
 ## Alur Pengintegrasian dengan Web Service
 ### Langkah-Langkah Integrasi Flutter dengan Django
