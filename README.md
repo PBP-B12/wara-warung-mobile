@@ -69,6 +69,9 @@ Untuk itulah WaraWarung hadir, memberikan solusi bagi wisatawan yang ingin meras
 
 
 ## Alur Pengintegrasian dengan Web Service
+
+![pbp kelompok bagan](https://github.com/user-attachments/assets/5ece6dcc-3004-478d-8bf1-f7560c83c8fe)
+
 ### Langkah-Langkah Integrasi Flutter dengan Django
 
 **1. Menambahkan Dependensi HTTP**
