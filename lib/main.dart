@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import 'startmenu.dart'; // Import the StartMenu file
+import 'homepage.dart'; // Import the StartMenu file
 void main() {
   runApp(const MyApp());
 }
@@ -31,7 +32,12 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      initialRoute: '/', 
+      routes: {
+        '/': (context) => const StartMenu(), // StartMenu is the initial screen
+        '/home': (context) => const HomePage(), // HomePage is the second screen
+      
+      },
     );
   }
 }
