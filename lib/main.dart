@@ -36,6 +36,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const StartMenu(), // StartMenu is the initial screen
         '/home': (context) => const HomePage(), // HomePage is the second screen
+        
       
       },
     );
