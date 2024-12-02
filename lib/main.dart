@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'startmenu.dart'; // Import the StartMenu file
 import 'homepage.dart'; // Import the StartMenu file
+import 'menuplanning.dart'; // Import the MenuPlanningPage
 void main() {
   runApp(const MyApp());
 }
@@ -36,6 +37,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const StartMenu(), // StartMenu is the initial screen
         '/home': (context) => const HomePage(), // HomePage is the second screen
+        '/menuplanning': (context) => const MenuPlanningPage(),
         
       
       },

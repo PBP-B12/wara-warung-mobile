@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'bottomnavbar.dart'; // Import the BottomNavbar
+import 'menuplanning.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -160,7 +161,15 @@ class HomePage extends StatelessWidget {
             top: screenHeight * 0.29, // Adjusted to make space for the image
             child: Column(
               children: [
-                Container(
+                GestureDetector(
+                onTap: () {
+                  // Navigate to the MenuPlanningPage
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const MenuPlanningPage()),
+                  );
+                },
+                child: Container(
                   width: screenWidth * 0.2,
                   height: screenWidth * 0.2,
                   decoration: const BoxDecoration(
@@ -169,6 +178,7 @@ class HomePage extends StatelessWidget {
                       fit: BoxFit.contain,
                     ),
                   ),
+                ),
                 ),
                 const SizedBox(height: 8), // Add space between image and text
                 const Text(
