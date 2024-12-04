@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wara_warung_mobile/startmenu.dart';
+import 'savedmenu.dart'; // Import the SavedMenuPage
 
 class MenuPlanningPage extends StatefulWidget {
   const MenuPlanningPage({Key? key}) : super(key: key);
@@ -14,7 +16,6 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
       TextEditingController(text: '100000'); // Budget input
   int _totalCartValue = 0;
 
-  // Add an item to the cart
   void _addToCart(String itemName, int price) {
     setState(() {
       final int newTotal = _totalCartValue + price;
@@ -25,27 +26,24 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
         _cartItems.clear();
         _totalCartValue = 0;
       } else {
-        // Update cart normally
         _cartItems[itemName] = (_cartItems[itemName] ?? 0) + 1;
         _totalCartValue = newTotal;
       }
     });
   }
 
-  // Remove an item from the cart
   void _removeFromCart(String itemName, int price) {
     setState(() {
       if (_cartItems.containsKey(itemName) && _cartItems[itemName]! > 0) {
         _totalCartValue -= price;
         _cartItems[itemName] = _cartItems[itemName]! - 1;
         if (_cartItems[itemName] == 0) {
-          _cartItems.remove(itemName); // Remove from cart if quantity is zero
+          _cartItems.remove(itemName);
         }
       }
     });
   }
 
-  // Show error dialog
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
@@ -64,7 +62,6 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
     );
   }
 
-  // Show the cart items in a popup modal
   void _showCartItems() {
     showModalBottomSheet(
       context: context,
@@ -90,41 +87,47 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
               ),
               const SizedBox(height: 16),
               if (_cartItems.isNotEmpty)
-                ..._cartItems.entries.map(
-                  (entry) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          entry.key,
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.remove_circle,
-                                  color: Colors.red),
-                              onPressed: () =>
-                                  _removeFromCart(entry.key, 20000), // Example price
-                            ),
-                            Text(
-                              '${entry.value}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                Expanded(
+                  child: ListView(
+                    children: _cartItems.entries.map(
+                      (entry) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                entry.key,
+                                style: const TextStyle(fontSize: 16),
                               ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.add_circle,
-                                  color: Colors.green),
-                              onPressed: () =>
-                                  _addToCart(entry.key, 20000), // Example price
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.remove_circle,
+                                        color: Colors.red),
+                                    onPressed: () =>
+                                        _removeFromCart(entry.key, 20000),
+                                  ),
+                                  Text(
+                                    '${entry.value}',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.add_circle,
+                                        color: Colors.green),
+                                    onPressed: () =>
+                                        _addToCart(entry.key, 20000),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ).toList(),
                   ),
                 )
               else
@@ -139,6 +142,19 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(builder: (context) {
+                    return const StartMenu();
+                  }));
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF7428),
+                ),
+                child: const Text('Saved Menu'),
               ),
             ],
           ),
@@ -161,11 +177,9 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            // Dropdown and Budget Input
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Warung Dropdown
                 Expanded(
                   flex: 2,
                   child: Container(
@@ -207,7 +221,6 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                // Budget Input
                 Expanded(
                   flex: 1,
                   child: Container(
@@ -238,8 +251,6 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
               ],
             ),
             const SizedBox(height: 24),
-
-            // Menu Items Section
             const Text(
               'Menu Items',
               style: TextStyle(
@@ -248,11 +259,11 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
               ),
             ),
             const SizedBox(height: 16),
-            _buildMenuItem(screenWidth, 'Nasi Goreng', 20000),
+            _buildMenuItem(screenWidth, 'Nasi Goreng', 20000, 'assets/images/nasi-goreng.jpeg'),
             const SizedBox(height: 16),
-            _buildMenuItem(screenWidth, 'Mie Goreng', 15000),
+            _buildMenuItem(screenWidth, 'Mie Goreng', 15000, 'assets/mie_goreng.jpg'),
             const SizedBox(height: 16),
-            _buildMenuItem(screenWidth, 'Soto Ayam', 25000),
+            _buildMenuItem(screenWidth, 'Soto Ayam', 25000, 'assets/soto_ayam.jpg'),
           ],
         ),
       ),
@@ -264,75 +275,84 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
     );
   }
 
-  // Build a menu item with + and - buttons for quantity
-  Widget _buildMenuItem(double screenWidth, String itemName, int price) {
-    return Container(
-      width: screenWidth * 0.9,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFFF5E6C5), Color(0xFFFFC5A5)],
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 4,
-            offset: Offset(0, 4),
-          ),
-        ],
+Widget _buildMenuItem(double screenWidth, String itemName, int price, String imageUrl) {
+  // Set a fixed width for the item container (e.g., 350)
+  final double fixedWidth = 350;
+
+  return Container(
+    width: fixedWidth, // Set fixed width for the menu item container
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(16),
+      gradient: const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Color(0xFFF5E6C5), Color(0xFFFFC5A5)],
       ),
+      boxShadow: const [
+        BoxShadow(
+          color: Colors.black26,
+          blurRadius: 4,
+          offset: Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            itemName,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+          // Fixed size image section on the left
+          Image.asset(
+            imageUrl,
+            width: 80, // Set fixed width for the image (small size)
+            height: 80, // Fixed height to maintain aspect ratio
+            fit: BoxFit.cover,
+          ),
+          const SizedBox(width: 16),
+          // Description and Title in the middle
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  itemName,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Rp ${price.toString()}',
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Rp ${price.toString()}',
-            style: const TextStyle(fontSize: 14, color: Colors.grey),
-          ),
-          const SizedBox(height: 16),
+          // Quantity control (+ and -) on the right in horizontal alignment
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.remove_circle, color: Colors.red),
-                    onPressed: () => _removeFromCart(itemName, price),
-                  ),
-                  Text(
-                    '${_cartItems[itemName] ?? 0}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.add_circle, color: Colors.green),
-                    onPressed: () => _addToCart(itemName, price),
-                  ),
-                ],
+              IconButton(
+                icon: const Icon(Icons.remove_circle, color: Colors.red),
+                onPressed: () => _removeFromCart(itemName, price),
               ),
-              ElevatedButton(
-                onPressed: () => _addToCart(itemName, price),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF7428),
+              Text(
+                '${_cartItems[itemName] ?? 0}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
-                child: const Text('Add to Cart'),
+              ),
+              IconButton(
+                icon: const Icon(Icons.add_circle, color: Colors.green),
+                onPressed: () => _addToCart(itemName, price),
               ),
             ],
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
+
+
 }
