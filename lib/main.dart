@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:wara_warung_mobile/homepage.dart';
-import 'package:wara_warung_mobile/startmenu.dart';
-import 'screens/search_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:wara_warung_mobile/screens/homepage.dart';
+import 'package:wara_warung_mobile/screens/startmenu.dart';
 
 void main() {
   runApp(const WaraWarungApp());
@@ -12,21 +13,29 @@ class WaraWarungApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Wara Warung',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSwatch().copyWith(
-          primary: Colors.orange, // Ungu kustom
-          secondary: Colors.red, // Ungu elemen sekunder
-        ),
-        useMaterial3: true,
-      ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const StartMenu(), // StartMenu is the initial screen
-        '/home': (context) => const HomePage(), // HomePage is the second screen
+    return Provider(
+      create: (_) {
+        CookieRequest request = CookieRequest();
+        return request;
       },
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Wara Warung',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSwatch().copyWith(
+            primary: Colors.orange,
+            secondary: Colors.red,
+          ),
+          useMaterial3: true,
+        ),
+        initialRoute: '/',
+        routes: {
+          '/': (context) =>
+              const StartMenu(), // StartMenu is the initial screen
+          '/home': (context) =>
+              const HomePage(), // HomePage is the second screen
+        },
+      ),
     );
   }
 }

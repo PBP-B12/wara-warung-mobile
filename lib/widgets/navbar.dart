@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wara_warung_mobile/homepage.dart';
+import 'package:wara_warung_mobile/screens/homepage.dart';
 import 'package:wara_warung_mobile/screens/search_screen.dart';
-import '../screens/add_menu_screen.dart'; // Import screen baru
+import '../screens/add_menu_screen.dart';
+import 'package:wara_warung_mobile/screens/logind.dart';
 
 class Navbar extends StatelessWidget implements PreferredSizeWidget {
   @override
   final Size preferredSize;
+  final String username;
 
-  Navbar({Key? key})
+  Navbar({Key? key, this.username = "guest"})
       : preferredSize = Size.fromHeight(kToolbarHeight),
         super(key: key);
 
@@ -59,6 +61,7 @@ class Navbar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class MenuDrawer extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -147,10 +150,14 @@ class MenuDrawer extends StatelessWidget {
               ),
             ),
             onPressed: () {
-              Navigator.pop(context); // Logika untuk Logout
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => LoginApp()),
+              );
             },
-            child: Text('Log Out',
-                style: GoogleFonts.poppins(color: Colors.black)),
+            child:
+                Text('Log In', style: GoogleFonts.poppins(color: Colors.black)),
           ),
         ],
       ),

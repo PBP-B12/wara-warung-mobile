@@ -1,18 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
+import 'package:wara_warung_mobile/screens/list_menu.dart';
 import 'package:wara_warung_mobile/screens/search_screen.dart';
 import 'package:wara_warung_mobile/widgets/navbar.dart';
+import 'package:wara_warung_mobile/models/menu.dart';
+import 'package:wara_warung_mobile/widgets/menucard.dart';
+import 'package:wara_warung_mobile/widgets/bottomnavbar.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  final String username;
+  const HomePage({super.key, this.username = ""});
+
+  // Fetch random menus from the API
+  Future<List<Menu>> fetchRandomMenus(CookieRequest request) async {
+    // URL endpoint API
+    final response = await request.get('https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menu/json/');
+
+    // Melakukan decode response menjadi bentuk json
+    var data = response;
+
+    // Mengonversi data json menjadi list menu
+    List<Menu> listMenu = [];
+    for (var d in data) {
+      if (d != null) {
+        listMenu.add(Menu.fromJson(d));
+      }
+    }
+
+    // Mengambil 3 item acak dari list menu
+    listMenu.shuffle(); // Acak urutan list
+    return listMenu.take(3).toList(); // Ambil 3 item pertama
+  }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
+    final request =
+        context.watch<CookieRequest>(); // Mendapatkan request cookie
+
     return Scaffold(
       appBar: Navbar(),
+      bottomNavigationBar: const BottomNavbar(),
       body: Container(
         width: screenWidth,
         height: screenHeight,
@@ -72,7 +104,7 @@ class HomePage extends StatelessWidget {
               child: SizedBox(
                 width: screenWidth * 0.8,
                 child: Text(
-                  'Hello, Luthfi',
+                  'Hello, ${username.isEmpty ? 'Guest' : username[0].toUpperCase() + username.substring(1).toLowerCase()}',
                   style: GoogleFonts.poppins(
                     color: Color(0xFF300C00),
                     fontSize: 25,
@@ -100,7 +132,7 @@ class HomePage extends StatelessWidget {
             // Option 1: Search Menu (Tombol yang diubah agar navigasi ke SearchScreen)
             Positioned(
               left: screenWidth * 0.08,
-              top: screenHeight * 0.25, // Adjusted to make space for the image
+              top: screenHeight * 0.25,
               child: GestureDetector(
                 onTap: () {
                   Navigator.push(
@@ -137,31 +169,40 @@ class HomePage extends StatelessWidget {
             ),
             // Option 2: Rate & Review
             Positioned(
-              left: screenWidth * 0.4,
-              top: screenHeight * 0.25, // Adjusted to make space for the image
-              child: Column(
-                children: [
-                  Container(
-                    width: screenWidth * 0.2,
-                    height: screenWidth * 0.2,
-                    decoration: const BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage('assets/images/review.png'),
-                        fit: BoxFit.contain,
+              left: screenWidth * 0.35,
+              top: screenHeight * 0.25,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => MenuPage()),
+                  );
+                },
+                child: Column(
+                  children: [
+                    Container(
+                      width: screenWidth * 0.28,
+                      height: screenWidth * 0.2,
+                      decoration: const BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage('assets/images/review.png'),
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 8), // Add space between image and text
-                  Text(
-                    'Rate & Review',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      color: Colors.black,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w400,
+                    const SizedBox(
+                        height: 8), // Add space between image and text
+                    Text(
+                      'Rate & Review',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: Colors.black,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             // Option 3: Menu Planning
@@ -210,90 +251,50 @@ class HomePage extends StatelessWidget {
                 ),
               ),
             ),
-            // Menu Recommendation Cards
+            // Menu Recommendations Section with FutureBuilder
+            Positioned(
+              left: screenWidth * 0.08,
+              top: screenHeight * 0.41,
+              child: SizedBox(
+                width: screenWidth * 0.8,
+                child: Text(
+                  'Menu Recommendations',
+                  style: GoogleFonts.poppins(
+                    color: Colors.black,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+            // FutureBuilder to fetch and display 3 random menu items
             Positioned(
               left: screenWidth * 0.08,
               top: screenHeight * 0.45,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  buildMenuCard(
-                      screenWidth, screenHeight, 'Nasi Goreng', 'Rp20.000'),
-                  SizedBox(width: screenWidth * 0.02),
-                  buildMenuCard(
-                      screenWidth, screenHeight, 'Mie Goreng', 'Rp15.000'),
-                  SizedBox(width: screenWidth * 0.02),
-                  buildMenuCard(
-                      screenWidth, screenHeight, 'Soto Ayam', 'Rp25.000'),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Function to Build Menu Cards
-  Widget buildMenuCard(
-      double screenWidth, double screenHeight, String title, String price) {
-    return Container(
-      width: screenWidth * 0.27,
-      height: screenHeight * 0.2,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(21),
-        gradient: const LinearGradient(
-          begin: Alignment(0.00, -1.00),
-          end: Alignment(0, 1),
-          colors: [Color(0xFFF5E6C5), Color(0xFFFFC4A4)],
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x3F000000),
-            blurRadius: 4,
-            offset: Offset(0, 4),
-          )
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              height: screenHeight * 0.1,
-              decoration: BoxDecoration(
-                image: const DecorationImage(
-                  image: NetworkImage("https://via.placeholder.com/97x68"),
-                  fit: BoxFit.fill,
-                ),
-                borderRadius: BorderRadius.circular(17),
-              ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              title,
-              style: GoogleFonts.poppins(
-                color: Colors.black,
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            Text(
-              price,
-              style: GoogleFonts.poppins(
-                color: Colors.black,
-                fontSize: 10,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              'Available at:\nWarung Lestari, Warung Man Luh, ...',
-              style: GoogleFonts.poppins(
-                color: Colors.black,
-                fontSize: 6,
-                fontWeight: FontWeight.w400,
+              child: FutureBuilder<List<Menu>>(
+                future: fetchRandomMenus(request),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return const Center(child: Text('Error fetching data.'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(
+                        child: Text('No menu recommendations available.'));
+                  } else {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: snapshot.data!.map((menu) {
+                        return MenuCard(
+                          title: menu.fields.menu,
+                          price: menu.fields.harga,
+                          imageUrl: menu.fields.gambar,
+                          warung: menu.fields.warung,
+                        );
+                      }).toList(),
+                    );
+                  }
+                },
               ),
             ),
           ],

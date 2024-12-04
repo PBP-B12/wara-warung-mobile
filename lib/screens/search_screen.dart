@@ -56,8 +56,8 @@ class _SearchMenuState extends State<SearchMenu> {
               // Search TextField
               Container(
                 width: MediaQuery.of(context).size.width *
-                    0.6, // Lebar 50% dari layar
-                height: 50, // Tinggi fixed
+                    0.6, // 60% of screen width
+                height: 50, // Fixed height
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey),
                   borderRadius: BorderRadius.horizontal(
@@ -65,20 +65,20 @@ class _SearchMenuState extends State<SearchMenu> {
                   ),
                 ),
                 child: TextField(
-                  textAlignVertical: TextAlignVertical
-                      .center, // Menjaga teks berada di tengah secara vertikal
+                  textAlignVertical:
+                      TextAlignVertical.center, // Ensures vertical centering
                   decoration: InputDecoration(
                     hintText: "Search",
                     prefixIcon: Icon(Icons.search, color: Colors.red),
-                    contentPadding: EdgeInsets.symmetric(
-                        vertical: 20,
-                        horizontal: 18), // Padded untuk rata tengah
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.horizontal(
                         left: Radius.circular(50),
                       ),
+                      borderSide: BorderSide.none,
                     ),
                   ),
+                  style: GoogleFonts.poppins(
+                      fontSize: 16), // Adjust font size for consistency
                 ),
               ),
 
@@ -88,8 +88,8 @@ class _SearchMenuState extends State<SearchMenu> {
               // Dropdown button
               Container(
                 width: MediaQuery.of(context).size.width *
-                    0.2, // Lebar 40% dari layar
-                height: 50, // Tinggi fixed sama dengan search box
+                    0.3, // Width of the container
+                height: 50, // Fixed height same as the search box
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey),
                   borderRadius: BorderRadius.horizontal(
@@ -101,18 +101,34 @@ class _SearchMenuState extends State<SearchMenu> {
                     value: _selectedBudget,
                     items: <String>[
                       'Budget',
-                      'Up to 10,000',
-                      'Up to 20,000',
-                      'Up to 30,000'
+                      '≥ 10,000',
+                      '≥ 20,000',
+                      '≥ 30,000'
                     ].map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Text(
-                            value,
-                            style: GoogleFonts.poppins(fontSize: 15),
-                          ),
+                        child: Row(
+                          mainAxisSize:
+                              MainAxisSize.min, // Ensures no extra space
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(
+                                  left: 8.0), // Add padding to the left
+                              child: Text(
+                                value,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                            if (value ==
+                                'Budget') // Show icon only if the value is 'Budget'
+                              Icon(
+                                Icons.arrow_drop_down,
+                                color: Colors.red,
+                                size: 16, // Size of the icon
+                              ),
+                          ],
                         ),
                       );
                     }).toList(),
@@ -124,7 +140,8 @@ class _SearchMenuState extends State<SearchMenu> {
                     icon: Icon(
                       Icons.arrow_drop_down,
                       color: Colors.red,
-                    ),
+                      size: 0, // Size of the icon
+                    ), // Remove the default dropdown icon
                   ),
                 ),
               ),
