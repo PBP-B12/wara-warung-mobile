@@ -102,12 +102,12 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
                               ),
                               Row(
                                 children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.remove_circle,
-                                        color: Colors.red),
-                                    onPressed: () =>
-                                        _removeFromCart(entry.key, 20000),
-                                  ),
+                                  // IconButton(
+                                  //   icon: const Icon(Icons.remove_circle,
+                                  //       color: Colors.red),
+                                  //   onPressed: () =>
+                                  //       _removeFromCart(entry.key, 20000),
+                                  // ),
                                   Text(
                                     '${entry.value}',
                                     style: const TextStyle(
@@ -115,12 +115,12 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  IconButton(
-                                    icon: const Icon(Icons.add_circle,
-                                        color: Colors.green),
-                                    onPressed: () =>
-                                        _addToCart(entry.key, 20000),
-                                  ),
+                                  // IconButton(
+                                  //   icon: const Icon(Icons.add_circle,
+                                  //       color: Colors.green),
+                                  //   onPressed: () =>
+                                  //       _addToCart(entry.key, 20000),
+                                  // ),
                                 ],
                               ),
                             ],
@@ -148,7 +148,7 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
                 onPressed: () {
                   Navigator.of(context)
                       .push(MaterialPageRoute(builder: (context) {
-                    return const StartMenu();
+                    return const SavedMenuPage();
                   }));
                 },
                 style: ElevatedButton.styleFrom(
