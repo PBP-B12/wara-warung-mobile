@@ -285,8 +285,9 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
                     return const Center(child: Text('No menu items available.'));
                   } else {
                     final menus = snapshot.data!;
-                    return ListView.builder(
+                    return ListView.separated(
                       itemCount: menus.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 8), // Space between boxes
                       itemBuilder: (context, index) {
                         final menu = menus[index];
                         return _buildMenuItem(
@@ -300,8 +301,8 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
                   }
                 },
               ),
-              
             ),
+
           ],
         ),
       ),
