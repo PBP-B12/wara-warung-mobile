@@ -17,7 +17,7 @@ class HomePage extends StatelessWidget {
   // Fetch random menus from the API
   Future<List<Menu>> fetchRandomMenus(CookieRequest request) async {
     // URL endpoint API
-    final response = await request.get('https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menu/json/');
+    final response = await request.get('http://127.0.0.1:8000/menu/json/');
 
     // Melakukan decode response menjadi bentuk json
     var data = response;
