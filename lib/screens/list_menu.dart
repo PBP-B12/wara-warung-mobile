@@ -13,7 +13,7 @@ class MenuPage extends StatefulWidget {
 class _MenuPageState extends State<MenuPage> {
   Future<List<Menu>> fetchProduct(CookieRequest request) async {
     // TODO: Ganti URL dan jangan lupa tambahkan trailing slash (/) di akhir URL!
-    final response = await request.get('https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menu/json/');
+    final response = await request.get('http://127.0.0.1:8000/menu/json/');
 
     // Melakukan decode response menjadi bentuk json
     var data = response;

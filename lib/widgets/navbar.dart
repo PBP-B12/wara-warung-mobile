@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:wara_warung_mobile/screens/homepage.dart';
 import 'package:wara_warung_mobile/screens/search_screen.dart';
 import '../screens/add_menu_screen.dart';
@@ -61,9 +63,11 @@ class Navbar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class MenuDrawer extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
+    final request = context.watch<CookieRequest>();
+    final username = request.getJsonData()['username'];
+
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -104,61 +108,100 @@ class MenuDrawer extends StatelessWidget {
               );
             },
           ),
-          ListTile(
-            title: Center(
-              child: Text(
-                'Menu Planning',
-                style: GoogleFonts.poppins(color: Colors.black),
+          if (username != null)
+            ListTile(
+              title: Center(
+                child: Text(
+                  'Menu Planning',
+                  style: GoogleFonts.poppins(color: Colors.black),
+                ),
               ),
+              onTap: () {
+                Navigator.pop(context); // Kembali ke Search Screen
+              },
             ),
-            onTap: () {
-              Navigator.pop(context); // Kembali ke Search Screen
-            },
-          ),
-          ListTile(
-            title: Center(
-              child: Text(
-                'My Account',
-                style: GoogleFonts.poppins(color: Colors.black),
+          if (username != null)
+            ListTile(
+              title: Center(
+                child: Text(
+                  'My Account',
+                  style: GoogleFonts.poppins(color: Colors.black),
+                ),
               ),
+              onTap: () {
+                Navigator.pop(context); // Kembali ke Search Screen
+              },
             ),
-            onTap: () {
-              Navigator.pop(context); // Kembali ke Search Screen
-            },
-          ),
-          ListTile(
-            title: Center(
-              child: Text(
-                'Add Menu',
-                style: GoogleFonts.poppins(color: Colors.black),
+          if (username == "admin")
+            ListTile(
+              title: Center(
+                child: Text(
+                  'Add Menu',
+                  style: GoogleFonts.poppins(color: Colors.black),
+                ),
               ),
+              onTap: () {
+                Navigator.pop(context); // Tutup drawer
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AddNewMenuScreen()),
+                );
+              },
             ),
-            onTap: () {
-              Navigator.pop(context); // Tutup drawer
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AddNewMenuScreen()),
-              );
-            },
-          ),
           SizedBox(height: 16),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+          if (username == null)
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginApp()),
+                );
+              },
+              child: Text('Log In',
+                  style: GoogleFonts.poppins(color: Colors.black)),
             ),
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => LoginApp()),
-              );
-            },
-            child:
-                Text('Log In', style: GoogleFonts.poppins(color: Colors.black)),
-          ),
+          if (username != null)
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () async {
+                final response =
+                    await request.logout("http://127.0.0.1:8000/auth/logoutd/");
+                String message = response["message"];
+                if (context.mounted) {
+                  if (response['status']) {
+                    String uname = response["username"];
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text("$message Sampai jumpa, $uname."),
+                    ));
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const LoginPage()),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(message),
+                      ),
+                    );
+                  }
+                }
+              },
+              child: Text('Log Out',
+                  style: GoogleFonts.poppins(color: Colors.black)),
+            ),
         ],
       ),
     );

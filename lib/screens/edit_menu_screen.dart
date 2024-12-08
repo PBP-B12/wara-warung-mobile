@@ -4,22 +4,44 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:wara_warung_mobile/models/add_edit_menu.dart';
+import 'package:wara_warung_mobile/screens/search_screen.dart';
 
-import '../models/add_edit_menu.dart';
-
-class AddNewMenuScreen extends StatefulWidget {
-  const AddNewMenuScreen({super.key});
+class EditMenuScreen extends StatefulWidget {
+  final String warung;
+  final String menu;
+  final int price;
+  final String imageUrl;
+  final int id;
+  const EditMenuScreen(
+      {required this.warung,
+      required this.menu,
+      required this.price,
+      required this.imageUrl,
+      required this.id,
+      super.key});
 
   @override
-  State<AddNewMenuScreen> createState() => _AddNewMenuScreenState();
+  State<EditMenuScreen> createState() => _EditMenuScreenState();
 }
 
-class _AddNewMenuScreenState extends State<AddNewMenuScreen> {
+class _EditMenuScreenState extends State<EditMenuScreen> {
   final _formKey = GlobalKey<FormState>();
   String _warung = "";
   String _menu = "";
   int _price = 0;
   String _imageUrl = "";
+  int _id = 0;
+
+  @override
+  void initState() {
+    _warung = widget.warung;
+    _menu = widget.menu;
+    _price = widget.price;
+    _imageUrl = widget.imageUrl;
+    _id = widget.id;
+    super.initState();
+  }
 
   Future<AddEditMenu> fetchAddMenuScreenData(CookieRequest request) async {
     final response =
@@ -37,7 +59,7 @@ class _AddNewMenuScreenState extends State<AddNewMenuScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Add Menu',
+          'Edit Menu',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             fontSize: 20,
@@ -86,6 +108,7 @@ class _AddNewMenuScreenState extends State<AddNewMenuScreen> {
                       ),
                       SizedBox(height: 8),
                       DropdownButtonFormField<String>(
+                        value: _warung,
                         decoration: InputDecoration(
                           contentPadding: EdgeInsets.symmetric(
                               vertical: 15, horizontal: 10),
@@ -119,6 +142,7 @@ class _AddNewMenuScreenState extends State<AddNewMenuScreen> {
                       ),
                       SizedBox(height: 8),
                       TextFormField(
+                        initialValue: _menu,
                         decoration: InputDecoration(
                           hintText: 'Enter menu name',
                           contentPadding: EdgeInsets.symmetric(
@@ -148,6 +172,7 @@ class _AddNewMenuScreenState extends State<AddNewMenuScreen> {
                       ),
                       SizedBox(height: 8),
                       TextFormField(
+                        initialValue: _price.toString(),
                         decoration: InputDecoration(
                           hintText: 'Enter price',
                           contentPadding: EdgeInsets.symmetric(
@@ -180,6 +205,7 @@ class _AddNewMenuScreenState extends State<AddNewMenuScreen> {
                       ),
                       SizedBox(height: 8),
                       TextFormField(
+                        initialValue: _imageUrl,
                         decoration: InputDecoration(
                           hintText: 'Enter image URL',
                           contentPadding: EdgeInsets.symmetric(
@@ -232,7 +258,7 @@ class _AddNewMenuScreenState extends State<AddNewMenuScreen> {
                                   // Kirim ke Django dan tunggu respons
                                   // TODO: Ganti URL dan jangan lupa tambahkan trailing slash (/) di akhir URL!
                                   final response = await request.postJson(
-                                    "http://127.0.0.1:8000/menu/add-menu-flutter/",
+                                    "http://127.0.0.1:8000/menu/edit-menu-flutter/$_id/",
                                     jsonEncode(<String, dynamic>{
                                       'warung': _warung,
                                       'menu': _menu,
@@ -249,6 +275,11 @@ class _AddNewMenuScreenState extends State<AddNewMenuScreen> {
                                             Text("Menu added successfully!"),
                                       ));
                                       Navigator.pop(context);
+                                      Navigator.pop(context);
+                                      Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  SearchScreen()));
                                     } else {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(const SnackBar(
