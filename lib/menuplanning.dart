@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:wara_warung_mobile/startmenu.dart';
 import 'savedmenu.dart'; // Import the SavedMenuPage
+
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:wara_warung_mobile/models/menu.dart';
+import 'package:wara_warung_mobile/savedmenu.dart';
+
+
 
 class MenuPlanningPage extends StatefulWidget {
   const MenuPlanningPage({Key? key}) : super(key: key);
@@ -15,6 +22,22 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
   final TextEditingController _budgetController =
       TextEditingController(text: '100000'); // Budget input
   int _totalCartValue = 0;
+
+  Future<List<Menu>> fetchMenus(CookieRequest request) async {
+    // API endpoint to fetch all menus
+    final response = await request.get(
+        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menu/json/');
+
+    // Decode response and convert to list of Menu
+    var data = response;
+    List<Menu> listMenu = [];
+    for (var d in data) {
+      if (d != null) {
+        listMenu.add(Menu.fromJson(d));
+      }
+    }
+    return listMenu; // Return the full menu list
+  }
 
   void _addToCart(String itemName, int price) {
     setState(() {
@@ -61,7 +84,6 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
       ),
     );
   }
-
   void _showCartItems() {
     showModalBottomSheet(
       context: context,
@@ -102,12 +124,6 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
                               ),
                               Row(
                                 children: [
-                                  // IconButton(
-                                  //   icon: const Icon(Icons.remove_circle,
-                                  //       color: Colors.red),
-                                  //   onPressed: () =>
-                                  //       _removeFromCart(entry.key, 20000),
-                                  // ),
                                   Text(
                                     '${entry.value}',
                                     style: const TextStyle(
@@ -115,12 +131,6 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  // IconButton(
-                                  //   icon: const Icon(Icons.add_circle,
-                                  //       color: Colors.green),
-                                  //   onPressed: () =>
-                                  //       _addToCart(entry.key, 20000),
-                                  // ),
                                 ],
                               ),
                             ],
@@ -166,6 +176,7 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final CookieRequest request = CookieRequest();
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFFBF2),
@@ -175,8 +186,9 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ListView(
+        child: Column(
           children: [
+            // Dropdown and Budget Input Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -259,100 +271,118 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
               ),
             ),
             const SizedBox(height: 16),
-            _buildMenuItem(screenWidth, 'Nasi Goreng', 20000, 'assets/images/nasi-goreng.jpeg'),
-            const SizedBox(height: 16),
-            _buildMenuItem(screenWidth, 'Mie Goreng', 15000, 'assets/mie_goreng.jpg'),
-            const SizedBox(height: 16),
-            _buildMenuItem(screenWidth, 'Soto Ayam', 25000, 'assets/soto_ayam.jpg'),
+
+            // Display Menu Items Dynamically Using FutureBuilder
+            Expanded(
+              child: FutureBuilder<List<Menu>>(
+                future: fetchMenus(request),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No menu items available.'));
+                  } else {
+                    final menus = snapshot.data!;
+                    return ListView.builder(
+                      itemCount: menus.length,
+                      itemBuilder: (context, index) {
+                        final menu = menus[index];
+                        return _buildMenuItem(
+                          screenWidth,
+                          menu.fields.menu,
+                          menu.fields.harga,
+                          menu.fields.gambar,
+                        );
+                      },
+                    );
+                  }
+                },
+              ),
+              
+            ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showCartItems,
+        onPressed: _showCartItems, // Implement this method to show cart items
         backgroundColor: const Color(0xFFFF7428),
         child: const Icon(Icons.shopping_cart),
       ),
     );
   }
 
-Widget _buildMenuItem(double screenWidth, String itemName, int price, String imageUrl) {
-  // Set a fixed width for the item container (e.g., 350)
-  final double fixedWidth = 350;
-
-  return Container(
-    width: fixedWidth, // Set fixed width for the menu item container
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(16),
-      gradient: const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Color(0xFFF5E6C5), Color(0xFFFFC5A5)],
-      ),
-      boxShadow: const [
-        BoxShadow(
-          color: Colors.black26,
-          blurRadius: 4,
-          offset: Offset(0, 4),
+  Widget _buildMenuItem(double screenWidth, String itemName, int price, String imageUrl) {
+    return Container(
+      width: screenWidth * 0.9,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFF5E6C5), Color(0xFFFFC5A5)],
         ),
-      ],
-    ),
-    child: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        children: [
-          // Fixed size image section on the left
-          Image.asset(
-            imageUrl,
-            width: 80, // Set fixed width for the image (small size)
-            height: 80, // Fixed height to maintain aspect ratio
-            fit: BoxFit.cover,
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 4,
+            offset: Offset(0, 4),
           ),
-          const SizedBox(width: 16),
-          // Description and Title in the middle
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Image.network(
+              imageUrl,
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    itemName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Rp ${price.toString()}',
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            Row(
               children: [
+                IconButton(
+                  icon: const Icon(Icons.remove_circle, color: Colors.red),
+                  onPressed: () => _removeFromCart(itemName, price),
+                ),
                 Text(
-                  itemName,
+                  '${_cartItems[itemName] ?? 0}',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Rp ${price.toString()}',
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                IconButton(
+                  icon: const Icon(Icons.add_circle, color: Colors.green),
+                  onPressed: () => _addToCart(itemName, price),
                 ),
               ],
             ),
-          ),
-          // Quantity control (+ and -) on the right in horizontal alignment
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.remove_circle, color: Colors.red),
-                onPressed: () => _removeFromCart(itemName, price),
-              ),
-              Text(
-                '${_cartItems[itemName] ?? 0}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.add_circle, color: Colors.green),
-                onPressed: () => _addToCart(itemName, price),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
-
-
+    );
+  }
 }
