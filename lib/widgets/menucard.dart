@@ -17,17 +17,15 @@ class MenuCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Mendapatkan ukuran layar
+    // Get screen dimensions
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
 
     return Container(
       margin: const EdgeInsets.symmetric(
-          vertical: 4.0, horizontal: 8.0), // Mengurangi margin antar card
-      width:
-          screenWidth * 0.27, // Menyesuaikan lebar dengan 27% dari lebar layar
-      height: screenHeight *
-          0.2, // Menyesuaikan tinggi dengan 20% dari tinggi layar
+          vertical: 4.0, horizontal: 8.0), // Margin between cards
+      width: screenWidth * 0.27, // Adjust width to 27% of the screen
+      height: screenHeight * 0.2, // Adjust height to 20% of the screen
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         color: Colors.white,
@@ -42,6 +40,7 @@ class MenuCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Image Section
           ClipRRect(
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(16),
@@ -54,9 +53,9 @@ class MenuCard extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
+          // Text Section
           Padding(
-            padding: const EdgeInsets.all(
-                8.0), // Mengurangi padding agar lebih proporsional
+            padding: const EdgeInsets.all(8.0), // Adjust padding
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -64,7 +63,7 @@ class MenuCard extends StatelessWidget {
                   title,
                   style: GoogleFonts.poppins(
                     color: Colors.black,
-                    fontSize: 12,
+                    fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -79,6 +78,7 @@ class MenuCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Icon(
                       Icons.location_on,
@@ -86,12 +86,17 @@ class MenuCard extends StatelessWidget {
                       color: Colors.orange,
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      warung,
-                      style: GoogleFonts.poppins(
-                        color: Colors.black,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w400,
+                    Expanded(
+                      // Ensure the text does not overflow
+                      child: Text(
+                        warung,
+                        style: GoogleFonts.poppins(
+                          color: Colors.black,
+                          fontSize: 7,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        softWrap: true, // Allow text wrapping
+                        overflow: TextOverflow.clip, // Clip overflowing text
                       ),
                     ),
                   ],
