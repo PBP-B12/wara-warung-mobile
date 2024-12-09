@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:wara_warung_mobile/screens/homepage.dart';
 import 'package:wara_warung_mobile/screens/search_screen.dart';
 import 'package:wara_warung_mobile/screens/user_dashboard.dart';
 
-
 class BottomNavbar extends StatelessWidget {
-  const BottomNavbar({super.key});
+  final String username;
+  const BottomNavbar({super.key, this.username = "guest"});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +23,11 @@ class BottomNavbar extends StatelessWidget {
         children: [
           IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/home'); // Navigate to home
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => HomePage()),
+              );
             },
             icon: const Icon(Icons.home, color: Colors.white),
           ),
@@ -36,12 +41,17 @@ class BottomNavbar extends StatelessWidget {
             },
             icon: const Icon(Icons.search, color: Colors.white),
           ),
-          IconButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/user_dashboard');
-            },
-            icon: const Icon(Icons.person, color: Colors.white),
-          ),
+          if (username != "guest" && username != "")
+            IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => UserDashboard()),
+                );
+              },
+              icon: const Icon(Icons.person, color: Colors.white),
+            ),
         ],
       ),
     );

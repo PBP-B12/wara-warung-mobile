@@ -22,8 +22,8 @@ class _AddNewMenuScreenState extends State<AddNewMenuScreen> {
   String _imageUrl = "";
 
   Future<AddEditMenu> fetchAddMenuScreenData(CookieRequest request) async {
-    final response =
-        await request.get('http://127.0.0.1:8000/menu/get-warungs/');
+    final response = await request.get(
+        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menu/get-warungs/');
 
     AddEditMenu editMenuData = AddEditMenu.fromJson(response);
 
@@ -232,7 +232,7 @@ class _AddNewMenuScreenState extends State<AddNewMenuScreen> {
                                   // Kirim ke Django dan tunggu respons
                                   // TODO: Ganti URL dan jangan lupa tambahkan trailing slash (/) di akhir URL!
                                   final response = await request.postJson(
-                                    "http://127.0.0.1:8000/menu/add-menu-flutter/",
+                                    "https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menu/add-menu-flutter/",
                                     jsonEncode(<String, dynamic>{
                                       'warung': _warung,
                                       'menu': _menu,

@@ -176,8 +176,8 @@ class MenuDrawer extends StatelessWidget {
                 ),
               ),
               onPressed: () async {
-                final response =
-                    await request.logout("http://127.0.0.1:8000/auth/logoutd/");
+                final response = await request.logout(
+                    "https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/auth/logoutd/");
                 String message = response["message"];
                 if (context.mounted) {
                   if (response['status']) {
