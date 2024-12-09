@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:wara_warung_mobile/screens/homepage.dart';
 import 'package:wara_warung_mobile/screens/startmenu.dart';
+import 'package:wara_warung_mobile/screens/user_dashboard.dart';
 
 void main() {
   runApp(const WaraWarungApp());
@@ -34,6 +35,8 @@ class WaraWarungApp extends StatelessWidget {
               const StartMenu(), // StartMenu is the initial screen
           '/home': (context) =>
               const HomePage(), // HomePage is the second screen
+          '/user_dashboard': (context) =>
+              const UserDashboard(), // UserDashboard is the third screen
         },
       ),
     );

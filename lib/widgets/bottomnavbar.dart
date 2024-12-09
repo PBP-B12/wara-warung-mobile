@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wara_warung_mobile/screens/search_screen.dart';
+import 'package:wara_warung_mobile/screens/user_dashboard.dart';
+
 
 class BottomNavbar extends StatelessWidget {
   const BottomNavbar({super.key});
@@ -36,7 +38,7 @@ class BottomNavbar extends StatelessWidget {
           ),
           IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/profile'); // Navigate to profile
+              Navigator.pushNamed(context, '/user_dashboard');
             },
             icon: const Icon(Icons.person, color: Colors.white),
           ),
