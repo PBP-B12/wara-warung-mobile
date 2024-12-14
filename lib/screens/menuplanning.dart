@@ -11,7 +11,7 @@ class MenuPlanningPage extends StatefulWidget {
 }
 
 class _MenuPlanningPageState extends State<MenuPlanningPage> {
-  final Map<String, int> _cartItems = {};
+  final Map<String, Map<String, dynamic>> _cartItems = {};
   // final Map<String, Map<String, dynamic>> _cartItems = {};
   String? _selectedWarung;
   final TextEditingController _budgetController =
@@ -83,83 +83,199 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
     }
   }
 
-  void _addToCart(String itemName, int price) {
-    setState(() {
-      final int newTotal = _totalCartValue + price;
+  // void _addToCart(String itemName, int price) {
+  //   setState(() {
+  //     final int newTotal = _totalCartValue + price;
 
-      if (newTotal > int.tryParse(_budgetController.text)!) {
-        _showErrorDialog('Total exceeds your budget. Cart will be reset.');
-        _cartItems.clear();
-        _totalCartValue = 0;
-      } else {
-        _cartItems[itemName] = (_cartItems[itemName] ?? 0) + 1;
-        _totalCartValue = newTotal;
-      }
-    });
-  }
+  //     if (newTotal > int.tryParse(_budgetController.text)!) {
+  //       _showErrorDialog('Total exceeds your budget. Cart will be reset.');
+  //       _cartItems.clear();
+  //       _totalCartValue = 0;
+  //     } else {
+  //       _cartItems[itemName] = (_cartItems[itemName] ?? 0) + 1;
+  //       _totalCartValue = newTotal;
+  //     }
+  //   });
+  // }
 
-
-  void _removeFromCart(String itemName, int price) {
-    setState(() {
-      if (_cartItems.containsKey(itemName) && _cartItems[itemName]! > 0) {
-        _totalCartValue -= price;
-        _cartItems[itemName] = _cartItems[itemName]! - 1;
-        if (_cartItems[itemName] == 0) {
-          _cartItems.remove(itemName);
-        }
-      }
-    });
-  }
-
-  Future<void> _saveCart() async {
-    if (_cartItems.isEmpty) {
-      _showErrorDialog('Your cart is empty. Add items before saving.');
-      return;
+void _addToCart(String itemName, int price) {
+  setState(() {
+    if (!_cartItems.containsKey(itemName)) {
+      _cartItems[itemName] = {'quantity': 0, 'price': price};
     }
+    final int currentQuantity = _cartItems[itemName]!['quantity'] as int;
+    final int newTotal = _totalCartValue + price;
 
-    setState(() {
-      _isSaving = true; // Show loading indicator
-    });
-
-    const String apiUrl = 'http://127.0.0.1:8000/menuplanning/create-menu-flutter/';
-    final String budget = _budgetController.text;
-
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'warung': _selectedWarung,
-          'budget': budget,
-          'cart_items': _cartItems,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final result = jsonDecode(response.body);
-        if (result['status'] == 'success') {
-          _showSuccessDialog('Cart saved successfully!');
-          setState(() {
-            _cartItems.clear();
-            _totalCartValue = 0;
-          });
-        } else {
-          _showErrorDialog(result['message'] ?? 'Failed to save cart.');
-        }
-      } else {
-        final error = jsonDecode(response.body);
-        _showErrorDialog(error['message'] ?? 'An error occurred.');
-      }
-    } catch (e) {
-      _showErrorDialog('An error occurred: $e');
-    } finally {
-      setState(() {
-        _isSaving = false; // Hide loading indicator
-      });
+    if (newTotal > int.tryParse(_budgetController.text)!) {
+      _showErrorDialog('Total exceeds your budget. Cart will be reset.');
+      _cartItems.clear();
+      _totalCartValue = 0;
+    } else {
+      _cartItems[itemName]!['quantity'] = currentQuantity + 1;
+      _totalCartValue = newTotal;
     }
+  });
+}
+
+void _removeFromCart(String itemName, int price) {
+  setState(() {
+    if (_cartItems.containsKey(itemName) &&
+        (_cartItems[itemName]!['quantity'] as int) > 0) {
+      final int currentQuantity = _cartItems[itemName]!['quantity'] as int;
+      final int newTotal = _totalCartValue - price;
+
+      _cartItems[itemName]!['quantity'] = currentQuantity - 1;
+      _totalCartValue = newTotal;
+
+      if (_cartItems[itemName]!['quantity'] == 0) {
+        _cartItems.remove(itemName);
+      }
+    }
+  });
+}
+
+
+
+
+
+  // void _removeFromCart(String itemName, int price) {
+  //   setState(() {
+  //     if (_cartItems.containsKey(itemName) && _cartItems[itemName]! > 0) {
+  //       _totalCartValue -= price;
+  //       _cartItems[itemName] = _cartItems[itemName]! - 1;
+  //       if (_cartItems[itemName] == 0) {
+  //         _cartItems.remove(itemName);
+  //       }
+  //     }
+  //   });
+  // }
+
+// Future<void> _saveCart() async {
+//   if (_cartItems.isEmpty) {
+//     _showErrorDialog('Your cart is empty. Add items before saving.');
+//     return;
+//   }
+
+//   setState(() {
+//     _isSaving = true; // Show loading indicator
+//   });
+
+//   const String apiUrl = 'http://127.0.0.1:8000/menuplanning/create-menu-flutter/';
+//   final String budget = _budgetController.text;
+
+//   try {
+//     // Transform _cartItems into a list of maps for JSON encoding
+//     final List<Map<String, dynamic>> cartItemsForJson = _cartItems.entries.map((entry) {
+//       final String itemName = entry.key;
+//       final int quantity = entry.value['quantity'] as int;
+//       final int price = entry.value['price'] as int;
+
+//       return {
+//         'item_name': itemName,
+//         'quantity': quantity,
+//         'price': price,
+//       };
+//     }).toList();
+
+//     final response = await http.post(
+//       Uri.parse(apiUrl),
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: jsonEncode({
+//         'warung': _selectedWarung,
+//         'budget': budget,
+//         'cart_items': cartItemsForJson,
+//       }),
+//     );
+
+//     if (response.statusCode == 200) {
+//       final result = jsonDecode(response.body);
+//       if (result['status'] == 'success') {
+//         _showSuccessDialog('Cart saved successfully!');
+//         setState(() {
+//           _cartItems.clear();
+//           _totalCartValue = 0;
+//         });
+//       } else {
+//         _showErrorDialog(result['message'] ?? 'Failed to save cart.');
+//       }
+//     } else {
+//       final error = jsonDecode(response.body);
+//       _showErrorDialog(error['message'] ?? 'An error occurred.');
+//     }
+//   } catch (e) {
+//     _showErrorDialog('An error occurred: $e');
+//   } finally {
+//     setState(() {
+//       _isSaving = false; // Hide loading indicator
+//     });
+//   }
+// }
+
+Future<void> _saveCart() async {
+  if (_cartItems.isEmpty) {
+    _showErrorDialog('Your cart is empty. Add items before saving.');
+    return;
   }
+
+  setState(() {
+    _isSaving = true; // Show loading indicator
+  });
+
+  const String apiUrl = 'http://127.0.0.1:8000/menuplanning/create-menu-flutter/';
+  final String budget = _budgetController.text;
+  final int saveSessionId = DateTime.now().millisecondsSinceEpoch; // Generate unique session ID
+
+  // Construct JSON payload
+  final List<Map<String, dynamic>> cartItemsJson = _cartItems.entries.map((entry) {
+    return {
+      "model": "menuplanning.chosenmenu",
+      "fields": {
+        "user": 1, // Replace with actual user ID if available
+        "item_name": entry.key,
+        "quantity": entry.value['quantity'],
+        "price": entry.value['price'].toStringAsFixed(2),
+        "save_session": saveSessionId,
+        "budget": budget,
+      }
+    };
+  }).toList();
+
+  try {
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(cartItemsJson), // Send as a JSON list
+    );
+
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+      if (result['status'] == 'success') {
+        _showSuccessDialog('Cart saved successfully!');
+        setState(() {
+          _cartItems.clear();
+          _totalCartValue = 0;
+        });
+      } else {
+        _showErrorDialog(result['message'] ?? 'Failed to save cart.');
+      }
+    } else {
+      final error = jsonDecode(response.body);
+      _showErrorDialog(error['message'] ?? 'An error occurred.');
+    }
+  } catch (e) {
+    _showErrorDialog('An error occurred: $e');
+  } finally {
+    setState(() {
+      _isSaving = false; // Hide loading indicator
+    });
+  }
+}
+
+
 
 
   void _showErrorDialog(String message) {
@@ -194,6 +310,111 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
     );
   }
 
+// void _showCartItems() {
+//   showModalBottomSheet(
+//     context: context,
+//     builder: (BuildContext context) {
+//       return Container(
+//         padding: const EdgeInsets.all(16.0),
+//         decoration: const BoxDecoration(
+//           color: Color(0xFFFFFBF2),
+//           borderRadius: BorderRadius.only(
+//             topLeft: Radius.circular(16.0),
+//             topRight: Radius.circular(16.0),
+//           ),
+//         ),
+//         child: Column(
+//           mainAxisSize: MainAxisSize.min,
+//           children: [
+//             const Text(
+//               'Your Cart',
+//               style: TextStyle(
+//                 fontSize: 20,
+//                 fontWeight: FontWeight.bold,
+//               ),
+//             ),
+//             const SizedBox(height: 16),
+//             if (_cartItems.isNotEmpty)
+//               Expanded(
+//                 child: ListView(
+//                   children: _cartItems.entries.map(
+//                     (entry) {
+//                       final itemName = entry.key;
+//                       final quantity = entry.value;
+//                       final itemPrice = 10000; // Replace with actual price if available
+
+//                       return Padding(
+//                         padding: const EdgeInsets.symmetric(vertical: 8.0),
+//                         child: Row(
+//                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                           children: [
+//                             Expanded(
+//                               child: Text(
+//                                 itemName,
+//                                 style: const TextStyle(fontSize: 16),
+//                               ),
+//                             ),
+//                             Row(
+//                               children: [
+//                                 IconButton(
+//                                   icon: const Icon(Icons.remove_circle,
+//                                       color: Colors.red),
+//                                   onPressed: () => _removeFromCart(
+//                                       itemName, itemPrice),
+//                                 ),
+//                                 Text(
+//                                   '$quantity',
+//                                   style: const TextStyle(
+//                                     fontSize: 16,
+//                                     fontWeight: FontWeight.bold,
+//                                   ),
+//                                 ),
+//                                 IconButton(
+//                                   icon: const Icon(Icons.add_circle,
+//                                       color: Colors.green),
+//                                   onPressed: () =>
+//                                       _addToCart(itemName, itemPrice),
+//                                 ),
+//                               ],
+//                             ),
+//                           ],
+//                         ),
+//                       );
+//                     },
+//                   ).toList(),
+//                 ),
+//               )
+//             else
+//               const Text(
+//                 'Your cart is empty.',
+//                 style: TextStyle(color: Colors.grey, fontSize: 16),
+//               ),
+//             const SizedBox(height: 16),
+//             Text(
+//               'Total: Rp$_totalCartValue',
+//               style: const TextStyle(
+//                 fontSize: 16,
+//                 fontWeight: FontWeight.bold,
+//               ),
+//             ),
+//             const SizedBox(height: 16),
+//             ElevatedButton(
+//               onPressed: _isSaving ? null : _saveCart,
+//               style: ElevatedButton.styleFrom(
+//                 backgroundColor:
+//                     _isSaving ? Colors.grey : const Color(0xFF64D16D),
+//               ),
+//               child: _isSaving
+//                   ? const CircularProgressIndicator(color: Colors.white)
+//                   : const Text('Save Menu'),
+//             ),
+//           ],
+//         ),
+//       );
+//     },
+//   );
+//}
+
 void _showCartItems() {
   showModalBottomSheet(
     context: context,
@@ -224,8 +445,8 @@ void _showCartItems() {
                   children: _cartItems.entries.map(
                     (entry) {
                       final itemName = entry.key;
-                      final quantity = entry.value;
-                      final itemPrice = 10000; // Replace with actual price if available
+                      final quantity = entry.value['quantity'];
+                      final itemPrice = entry.value['price'];
 
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -241,10 +462,8 @@ void _showCartItems() {
                             Row(
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.remove_circle,
-                                      color: Colors.red),
-                                  onPressed: () => _removeFromCart(
-                                      itemName, itemPrice),
+                                  icon: const Icon(Icons.remove_circle, color: Colors.red),
+                                  onPressed: () => _removeFromCart(itemName, itemPrice),
                                 ),
                                 Text(
                                   '$quantity',
@@ -254,10 +473,8 @@ void _showCartItems() {
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.add_circle,
-                                      color: Colors.green),
-                                  onPressed: () =>
-                                      _addToCart(itemName, itemPrice),
+                                  icon: const Icon(Icons.add_circle, color: Colors.green),
+                                  onPressed: () => _addToCart(itemName, itemPrice),
                                 ),
                               ],
                             ),
@@ -285,8 +502,7 @@ void _showCartItems() {
             ElevatedButton(
               onPressed: _isSaving ? null : _saveCart,
               style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    _isSaving ? Colors.grey : const Color(0xFF64D16D),
+                backgroundColor: _isSaving ? Colors.grey : const Color(0xFFFF7428),
               ),
               child: _isSaving
                   ? const CircularProgressIndicator(color: Colors.white)
@@ -298,6 +514,7 @@ void _showCartItems() {
     },
   );
 }
+
 
   
 
@@ -418,79 +635,87 @@ void _showCartItems() {
     );
   }
 
-  Widget _buildMenuItem(
-      double screenWidth, String itemName, int price, String imageUrl) {
-    return Container(
-      width: screenWidth * 0.9,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFFF5E6C5), Color(0xFFFFC5A5)],
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 4,
-            offset: Offset(0, 4),
-          ),
-        ],
+Widget _buildMenuItem(
+    double screenWidth, String itemName, int price, String imageUrl) {
+  final int quantity = _cartItems[itemName]?['quantity'] ?? 0; // Get current quantity
+
+  return Container(
+    width: screenWidth * 0.9,
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(16),
+      gradient: const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Color(0xFFF5E6C5), Color(0xFFFFC5A5)],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            Image.network(
-              imageUrl,
-              width: 80,
-              height: 80,
-              fit: BoxFit.cover,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    itemName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Rp $price',
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
-            Row(
+      boxShadow: const [
+        BoxShadow(
+          color: Colors.black26,
+          blurRadius: 4,
+          offset: Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        children: [
+          Image.network(
+            imageUrl,
+            width: 80,
+            height: 80,
+            fit: BoxFit.cover,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                IconButton(
-                  icon: const Icon(Icons.remove_circle, color: Colors.red),
-                  onPressed: () => _removeFromCart(itemName, price),
-                ),
                 Text(
-                  '${_cartItems[itemName] ?? 0}',
+                  itemName,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.add_circle, color: Colors.green),
-                  onPressed: () => _addToCart(itemName, price),
+                const SizedBox(height: 8),
+                Text(
+                  'Rp $price',
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.remove_circle, color: Colors.red),
+                onPressed: () {
+                  if (quantity > 0) {
+                    _removeFromCart(itemName, price);
+                  }
+                },
+              ),
+              Text(
+                '$quantity', // Show the quantity here
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.add_circle, color: Colors.green),
+                onPressed: () {
+                  _addToCart(itemName, price);
+                },
+              ),
+            ],
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class Menu {
