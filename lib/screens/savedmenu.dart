@@ -36,6 +36,7 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Saved Menus'),
+        backgroundColor: const Color(0xFFFF7428),
       ),
       body: FutureBuilder<List<ChosenMenu>>(
         future: savedMenus,
@@ -48,16 +49,20 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
             return const Center(child: Text('No saved menus found.'));
           } else {
             final groupedMenus = _groupBySaveSession(snapshot.data!);
-            return ListView(
-              children: groupedMenus.entries.map((entry) {
-                final session = entry.key;
-                final menus = entry.value;
+            return ListView.builder(
+              itemCount: groupedMenus.length,
+              itemBuilder: (context, index) {
+                final session = groupedMenus.keys.elementAt(index);
+                final menus = groupedMenus[session]!;
 
-                return SavedMenuCard(
-                  session: session,
-                  menus: menus,
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: SavedMenuCard(
+                    session: session,
+                    menus: menus,
+                  ),
                 );
-              }).toList(),
+              },
             );
           }
         },
@@ -100,14 +105,17 @@ class SavedMenuCard extends StatelessWidget {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            ...menus.map((menu) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Text(
-                  '${menu.quantity} x ${menu.itemName} = Rp ${(menu.quantity * menu.price).toStringAsFixed(0)}',
-                ),
-              );
-            }).toList(),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: menus.map((menu) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: Text(
+                    '${menu.quantity} x ${menu.itemName} = Rp ${(menu.quantity * menu.price).toStringAsFixed(0)}',
+                  ),
+                );
+              }).toList(),
+            ),
             const SizedBox(height: 8),
             Text(
               'Total: Rp ${totalPrice.toStringAsFixed(0)}',

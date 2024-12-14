@@ -12,7 +12,6 @@ class MenuPlanningPage extends StatefulWidget {
 
 class _MenuPlanningPageState extends State<MenuPlanningPage> {
   final Map<String, Map<String, dynamic>> _cartItems = {};
-  // final Map<String, Map<String, dynamic>> _cartItems = {};
   String? _selectedWarung;
   final TextEditingController _budgetController =
       TextEditingController(text: '100000');
@@ -83,20 +82,6 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
     }
   }
 
-  // void _addToCart(String itemName, int price) {
-  //   setState(() {
-  //     final int newTotal = _totalCartValue + price;
-
-  //     if (newTotal > int.tryParse(_budgetController.text)!) {
-  //       _showErrorDialog('Total exceeds your budget. Cart will be reset.');
-  //       _cartItems.clear();
-  //       _totalCartValue = 0;
-  //     } else {
-  //       _cartItems[itemName] = (_cartItems[itemName] ?? 0) + 1;
-  //       _totalCartValue = newTotal;
-  //     }
-  //   });
-  // }
 
 void _addToCart(String itemName, int price) {
   setState(() {
@@ -134,84 +119,6 @@ void _removeFromCart(String itemName, int price) {
   });
 }
 
-
-
-
-
-  // void _removeFromCart(String itemName, int price) {
-  //   setState(() {
-  //     if (_cartItems.containsKey(itemName) && _cartItems[itemName]! > 0) {
-  //       _totalCartValue -= price;
-  //       _cartItems[itemName] = _cartItems[itemName]! - 1;
-  //       if (_cartItems[itemName] == 0) {
-  //         _cartItems.remove(itemName);
-  //       }
-  //     }
-  //   });
-  // }
-
-// Future<void> _saveCart() async {
-//   if (_cartItems.isEmpty) {
-//     _showErrorDialog('Your cart is empty. Add items before saving.');
-//     return;
-//   }
-
-//   setState(() {
-//     _isSaving = true; // Show loading indicator
-//   });
-
-//   const String apiUrl = 'http://127.0.0.1:8000/menuplanning/create-menu-flutter/';
-//   final String budget = _budgetController.text;
-
-//   try {
-//     // Transform _cartItems into a list of maps for JSON encoding
-//     final List<Map<String, dynamic>> cartItemsForJson = _cartItems.entries.map((entry) {
-//       final String itemName = entry.key;
-//       final int quantity = entry.value['quantity'] as int;
-//       final int price = entry.value['price'] as int;
-
-//       return {
-//         'item_name': itemName,
-//         'quantity': quantity,
-//         'price': price,
-//       };
-//     }).toList();
-
-//     final response = await http.post(
-//       Uri.parse(apiUrl),
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//       body: jsonEncode({
-//         'warung': _selectedWarung,
-//         'budget': budget,
-//         'cart_items': cartItemsForJson,
-//       }),
-//     );
-
-//     if (response.statusCode == 200) {
-//       final result = jsonDecode(response.body);
-//       if (result['status'] == 'success') {
-//         _showSuccessDialog('Cart saved successfully!');
-//         setState(() {
-//           _cartItems.clear();
-//           _totalCartValue = 0;
-//         });
-//       } else {
-//         _showErrorDialog(result['message'] ?? 'Failed to save cart.');
-//       }
-//     } else {
-//       final error = jsonDecode(response.body);
-//       _showErrorDialog(error['message'] ?? 'An error occurred.');
-//     }
-//   } catch (e) {
-//     _showErrorDialog('An error occurred: $e');
-//   } finally {
-//     setState(() {
-//       _isSaving = false; // Hide loading indicator
-//     });
-//   }
-// }
 
 Future<void> _saveCart() async {
   if (_cartItems.isEmpty) {
@@ -310,111 +217,6 @@ Future<void> _saveCart() async {
     );
   }
 
-// void _showCartItems() {
-//   showModalBottomSheet(
-//     context: context,
-//     builder: (BuildContext context) {
-//       return Container(
-//         padding: const EdgeInsets.all(16.0),
-//         decoration: const BoxDecoration(
-//           color: Color(0xFFFFFBF2),
-//           borderRadius: BorderRadius.only(
-//             topLeft: Radius.circular(16.0),
-//             topRight: Radius.circular(16.0),
-//           ),
-//         ),
-//         child: Column(
-//           mainAxisSize: MainAxisSize.min,
-//           children: [
-//             const Text(
-//               'Your Cart',
-//               style: TextStyle(
-//                 fontSize: 20,
-//                 fontWeight: FontWeight.bold,
-//               ),
-//             ),
-//             const SizedBox(height: 16),
-//             if (_cartItems.isNotEmpty)
-//               Expanded(
-//                 child: ListView(
-//                   children: _cartItems.entries.map(
-//                     (entry) {
-//                       final itemName = entry.key;
-//                       final quantity = entry.value;
-//                       final itemPrice = 10000; // Replace with actual price if available
-
-//                       return Padding(
-//                         padding: const EdgeInsets.symmetric(vertical: 8.0),
-//                         child: Row(
-//                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                           children: [
-//                             Expanded(
-//                               child: Text(
-//                                 itemName,
-//                                 style: const TextStyle(fontSize: 16),
-//                               ),
-//                             ),
-//                             Row(
-//                               children: [
-//                                 IconButton(
-//                                   icon: const Icon(Icons.remove_circle,
-//                                       color: Colors.red),
-//                                   onPressed: () => _removeFromCart(
-//                                       itemName, itemPrice),
-//                                 ),
-//                                 Text(
-//                                   '$quantity',
-//                                   style: const TextStyle(
-//                                     fontSize: 16,
-//                                     fontWeight: FontWeight.bold,
-//                                   ),
-//                                 ),
-//                                 IconButton(
-//                                   icon: const Icon(Icons.add_circle,
-//                                       color: Colors.green),
-//                                   onPressed: () =>
-//                                       _addToCart(itemName, itemPrice),
-//                                 ),
-//                               ],
-//                             ),
-//                           ],
-//                         ),
-//                       );
-//                     },
-//                   ).toList(),
-//                 ),
-//               )
-//             else
-//               const Text(
-//                 'Your cart is empty.',
-//                 style: TextStyle(color: Colors.grey, fontSize: 16),
-//               ),
-//             const SizedBox(height: 16),
-//             Text(
-//               'Total: Rp$_totalCartValue',
-//               style: const TextStyle(
-//                 fontSize: 16,
-//                 fontWeight: FontWeight.bold,
-//               ),
-//             ),
-//             const SizedBox(height: 16),
-//             ElevatedButton(
-//               onPressed: _isSaving ? null : _saveCart,
-//               style: ElevatedButton.styleFrom(
-//                 backgroundColor:
-//                     _isSaving ? Colors.grey : const Color(0xFF64D16D),
-//               ),
-//               child: _isSaving
-//                   ? const CircularProgressIndicator(color: Colors.white)
-//                   : const Text('Save Menu'),
-//             ),
-//           ],
-//         ),
-//       );
-//     },
-//   );
-//}
-
 void _showCartItems() {
   showModalBottomSheet(
     context: context,
@@ -506,7 +308,12 @@ void _showCartItems() {
               ),
               child: _isSaving
                   ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('Save Menu'),
+                  : const Text(
+                      'Save Menu',
+                      style: TextStyle(
+                        color: Colors.black, // Set the text color to black
+                      ),
+                    ),
             ),
           ],
         ),
@@ -529,7 +336,7 @@ void _showCartItems() {
         backgroundColor: const Color(0xFFFF7428),
         actions: [
           IconButton(
-            icon: const Icon(Icons.menu_book),
+            icon: const Icon(Icons.bookmark_rounded),
             onPressed: () {
               Navigator.push(
                 context,
@@ -548,7 +355,7 @@ void _showCartItems() {
             Row(
               children: [
                 Expanded(
-                  flex: 2,
+                  flex: 3,
                   child: DropdownButton<String>(
                     value: _selectedWarung,
                     hint: const Text('Select Warung'),
@@ -605,18 +412,23 @@ void _showCartItems() {
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('No menu items available.'));
+                    return const Center(child: Text('Select Warung and Preferred Budget.'));
                   } else {
                     final menus = snapshot.data!;
                     return ListView.builder(
                       itemCount: menus.length,
                       itemBuilder: (context, index) {
                         final menu = menus[index];
-                        return _buildMenuItem(
-                          screenWidth,
-                          menu.itemName,
-                          menu.price,
-                          menu.imageUrl,
+                        return Column(
+                          children: [
+                            _buildMenuItem(
+                              MediaQuery.of(context).size.width, // Pass screen width
+                              menu.itemName,
+                              menu.price,
+                              menu.imageUrl,
+                            ),
+                            const SizedBox(height: 16), // Add spacing between boxes
+                          ],
                         );
                       },
                     );
@@ -624,6 +436,7 @@ void _showCartItems() {
                 },
               ),
             ),
+
           ],
         ),
       ),
