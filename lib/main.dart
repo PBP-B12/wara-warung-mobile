@@ -5,7 +5,7 @@ import 'package:wara_warung_mobile/screens/homepage.dart';
 import 'package:wara_warung_mobile/screens/startmenu.dart' as screen;
 import 'startmenu.dart' as local; // Import the StartMenu file
 import 'package:wara_warung_mobile/screens/homepage.dart' as local; // Import the HomePage file
-import 'menuplanning.dart'; // Import the MenuPlanningPage
+
 void main() {
   runApp(const WaraWarungApp());
   // runApp(const MyApp());

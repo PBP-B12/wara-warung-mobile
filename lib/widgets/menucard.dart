@@ -86,7 +86,8 @@ class MenuCard extends StatelessWidget {
                       color: Colors.orange,
                     ),
                     const SizedBox(width: 4),
-                    Expanded( // Ensure the text does not overflow
+                    Expanded(
+                      // Ensure the text does not overflow
                       child: Text(
                         warung,
                         style: GoogleFonts.poppins(

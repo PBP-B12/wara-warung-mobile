@@ -2,43 +2,53 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'package:wara_warung_mobile/menuplanning.dart';
-import 'package:wara_warung_mobile/screens/list_menu.dart';
+
+import 'package:wara_warung_mobile/models/search.dart';
+import 'package:wara_warung_mobile/screens/all_menu.dart';
+import 'package:wara_warung_mobile/screens/menuplanning.dart';
+import 'package:wara_warung_mobile/screens/ratereview_menu.dart';
 import 'package:wara_warung_mobile/screens/search_screen.dart';
 import 'package:wara_warung_mobile/widgets/navbar.dart';
-import 'package:wara_warung_mobile/models/menu.dart';
-import 'package:wara_warung_mobile/widgets/menucard.dart';
 import 'package:wara_warung_mobile/widgets/bottomnavbar.dart';
+import 'package:wara_warung_mobile/widgets/menucardv2.dart';
 
 class HomePage extends StatelessWidget {
   final String username;
   const HomePage({super.key, this.username = ""});
 
-  // Fetch random menus from the API
-  Future<List<Menu>> fetchRandomMenus(CookieRequest request) async {
-    final response = await request.get('https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menu/json/');
-    // final response = await request.get('http://127.0.0.1:8000/menu/json/');
-    var data = response;
-    List<Menu> listMenu = [];
-    for (var d in data) {
-      if (d != null) {
-        listMenu.add(Menu.fromJson(d));
-      }
-    }
+  Future<List<Result>> fetchRandomMenus(CookieRequest request) async {
+    final response = await request.get(
+        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/search-menu?json=true');
+    List<Result> listMenu = [];
+
+    listMenu = Search.fromJson(response).results;
+
     listMenu.shuffle();
-    return listMenu.take(4).toList();
+    return listMenu.take(4).toList(); // Selects only 4 random items
+  }
+
+  int getCrossAxisCount(double width) {
+    if (width >= 1280) {
+      return 5;
+    } else if (width >= 1024) {
+      return 4;
+    } else if (width >= 768) {
+      return 3;
+    } else {
+      return 2;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final crossAxisCount = getCrossAxisCount(MediaQuery.of(context).size.width);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-
     final request = context.watch<CookieRequest>();
 
    return Scaffold(
       appBar: Navbar(),
-      bottomNavigationBar: const BottomNavbar(),
+      bottomNavigationBar: BottomNavbar(username: username),
       body: Container(
         decoration: const BoxDecoration(color: Color(0xFFFFFBF2)),
         child: SingleChildScrollView(
@@ -75,6 +85,7 @@ class HomePage extends StatelessWidget {
                           radius: 40, // Fixed size for avatar
                           backgroundImage:
                               AssetImage('assets/images/profile.png'),
+                          backgroundColor: Colors.transparent,
                         ),
                         const SizedBox(width: 15), // Fixed spacing
                         Expanded(
@@ -82,7 +93,7 @@ class HomePage extends StatelessWidget {
                             'Hello, ${username.isEmpty ? 'Guest' : username[0].toUpperCase() + username.substring(1).toLowerCase()}',
                             style: GoogleFonts.poppins(
                               color: const Color(0xFFFFFFFF),
-                              fontSize: 20, // Fixed font size
+                              fontSize: 25,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -104,99 +115,119 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
               ),
-              
+
               // Options Section
               Padding(
                 padding: EdgeInsets.only(
-                    left: screenWidth * 0.15, // Smaller padding to move closer to the left
+                    left: screenWidth * 0.05,
+                    right: screenWidth * 0.05,
                     top: screenHeight * 0.02),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start, // Align options to the start
+                  mainAxisAlignment: MainAxisAlignment
+                      .spaceEvenly, // Makes buttons align evenly
                   children: [
                     // Option 1: Search Menu
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => SearchScreen()),
-                        );
-                      },
-                      child: Column(
-                        children: [
-                          Image.asset(
-                            'assets/images/search.png',
-                            width: screenWidth * 0.2, // Reduced size for compact layout
-                            height: screenWidth * 0.15,
-                          ),
-                          const SizedBox(height: 6), // Less space between image and text
-                          Text(
-                            'Search Menu',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              color: Colors.black,
-                              fontSize: screenWidth * 0.03,
-                              fontWeight: FontWeight.w400,
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => SearchScreen()),
+                          );
+                        },
+                        child: Column(
+                          children: [
+                            Image.asset(
+                              'assets/images/search.png',
+                              width: screenWidth *
+                                  0.25, // Adjusted size for a larger button
+                              height: screenWidth * 0.18,
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 6),
+                            Text(
+                              'Search Menu',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(
+                                color: Colors.black,
+                                fontSize:
+                                    screenWidth * 0.035, // Larger font size
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    SizedBox(width: screenWidth * 0.03), // Reduced spacing between options
+                    SizedBox(
+                        width: screenWidth * 0.01), // Spacing between options
+
                     // Option 2: Rate & Review
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => MenuPage()),
-                        );
-                      },
-                      child: Column(
-                        children: [
-                          Image.asset(
-                            'assets/images/review.png',
-                            width: screenWidth * 0.2, // Reduced size for compact layout
-                            height: screenWidth * 0.15,
-                          ),
-                          const SizedBox(height: 6), // Less space between image and text
-                          Text(
-                            'Rate & Review',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              color: Colors.black,
-                              fontSize: screenWidth * 0.03,
-                              fontWeight: FontWeight.w400,
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => AllMenu()),
+                          );
+                        },
+                        child: Column(
+                          children: [
+                            Image.asset(
+                              'assets/images/review.png',
+                              width: screenWidth *
+                                  0.25, // Adjusted size for a larger button
+                              height: screenWidth * 0.18,
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 6),
+                            Text(
+                              'Rate & Review',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(
+                                color: Colors.black,
+                                fontSize:
+                                    screenWidth * 0.035, // Larger font size
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    SizedBox(width: screenWidth * 0.03), // Reduced spacing between options
+                    SizedBox(
+                        width: screenWidth * 0.01), // Spacing between options
+
                     // Option 3: Menu Planning
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => MenuPlanningPage()),
-                        );
-                      },
-                      child: Column(
-                        children: [
-                          Image.asset(
-                            'assets/images/plan.png',
-                            width: screenWidth * 0.2, // Reduced size for compact layout
-                            height: screenWidth * 0.15,
-                          ),
-                          const SizedBox(height: 6), // Less space between image and text
-                          Text(
-                            'Menu Planning',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              color: Colors.black,
-                              fontSize: screenWidth * 0.03,
-                              fontWeight: FontWeight.w400,
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => MenuPlanningPage()),
+                          );
+                        },
+                        child: Column(
+                          children: [
+                            Image.asset(
+                              'assets/images/plan.png',
+                              width: screenWidth *
+                                  0.25, // Adjusted size for a larger button
+                              height: screenWidth * 0.18,
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 6),
+                            Text(
+                              'Menu Planning',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(
+                                color: Colors.black,
+                                fontSize:
+                                    screenWidth * 0.035, // Larger font size
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -215,11 +246,11 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
               ),
+
               // Menu Recommendations Section with FutureBuilder
               Padding(
-                padding: EdgeInsets.only(
-                    left: screenWidth * 0.15, top: screenHeight * 0.02),
-                child: FutureBuilder<List<Menu>>(
+                padding: EdgeInsets.only(top: screenHeight * 0.02),
+                child: FutureBuilder<List<Result>>(
                   future: fetchRandomMenus(request),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
@@ -230,17 +261,34 @@ class HomePage extends StatelessWidget {
                       return const Center(
                           child: Text('No menu recommendations available.'));
                     } else {
-                      return Wrap(
-                        spacing: screenWidth * 0.05,
-                        runSpacing: screenHeight * 0.02,
-                        children: snapshot.data!.map((menu) {
+                      return GridView.builder(
+                        shrinkWrap:
+                            true, // Makes the GridView scrollable within the SingleChildScrollView
+                        physics: NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 30,
+                        ),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          crossAxisSpacing: 10.0,
+                          mainAxisSpacing: 20.0,
+                          childAspectRatio: username != "" ? 0.475 : 0.6,
+                        ),
+                        itemCount: snapshot.data!.length,
+                        itemBuilder: (context, index) {
+                          var menu = snapshot.data![index];
                           return MenuCard(
-                            title: menu.fields.menu,
-                            price: menu.fields.harga,
-                            imageUrl: menu.fields.gambar,
-                            warung: menu.fields.warung,
+                            title: menu.menu,
+                            price: menu.harga,
+                            imageUrl: menu.gambar,
+                            warung: menu.warung,
+                            idMenu: menu.id,
+                            avgRating: menu.avgRating,
+                            request: request,
+                            context: context,
                           );
-                        }).toList(),
+                        },
                       );
                     }
                   },

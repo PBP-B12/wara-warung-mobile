@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:wara_warung_mobile/screens/edit_menu_screen.dart';
+import 'package:wara_warung_mobile/screens/search_screen.dart';
 
 class MenuCard extends StatelessWidget {
   final String title;
   final int price;
   final String imageUrl;
   final String warung;
-  final String username;
   final int idMenu;
   final int avgRating;
-  final Function deleteMenu;
-  final Function EditMenuScreen;
+  final CookieRequest request;
+  final BuildContext context;
 
   const MenuCard({
     super.key,
@@ -20,13 +22,36 @@ class MenuCard extends StatelessWidget {
     required this.warung,
     required this.idMenu,
     required this.avgRating,
-    required this.username, // Menambahkan parameter username
-    required this.deleteMenu, // Menambahkan parameter deleteMenu
-    required this.EditMenuScreen,
+    required this.request,
+    required this.context,
   });
+
+  void deleteMenu(int id, CookieRequest request) async {
+    final response = await request.get(
+        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menu/delete/$id?json=true');
+    if (response['status'] == 200) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text("Berhasil menghapus menu")),
+        );
+      Navigator.pop(context);
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => SearchScreen()),
+      );
+    } else {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text("Gagal menghapus menu")),
+        );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final username = request.getJsonData()['username'];
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
@@ -102,7 +127,7 @@ class MenuCard extends StatelessWidget {
                             width: 5,
                           ),
                           InkWell(
-                            onTap: () => deleteMenu(),
+                            onTap: () => deleteMenu(idMenu, request),
                             child: Container(
                                 padding: const EdgeInsets.all(7.5),
                                 decoration: BoxDecoration(
