@@ -143,7 +143,7 @@ class _UserDashboardState extends State<UserDashboard> {
       title: 'My Account',
       home: Scaffold(
         appBar: Navbar(),
-        bottomNavigationBar: const BottomNavbar(username: "contoh"),
+        bottomNavigationBar: const BottomNavbar(),
         backgroundColor: const Color(0xFFFDF1E6), // Light peach background
         body: SingleChildScrollView(
           child: Column(

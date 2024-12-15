@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -25,8 +27,13 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
         ? 100000
         : int.tryParse(_budgetController.text)!;
     // API endpoint to fetch all menus
-    final response = await request.get(
-        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/search-menu?json=true&warung=$warungFilter&budget=$budgetFilter');
+    final response = await request.postJson(
+        "http://127.0.0.1:8000/menu-data/",
+        jsonEncode(<String, String>{
+          'query': "",
+          'budget': budgetFilter.toString(),
+          'warung': warungFilter,
+        }));
 
     List<Result> listMenu = [];
     listMenu = Search.fromJson(response).results;

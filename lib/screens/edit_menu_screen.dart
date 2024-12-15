@@ -44,8 +44,8 @@ class _EditMenuScreenState extends State<EditMenuScreen> {
   }
 
   Future<AddEditMenu> fetchAddMenuScreenData(CookieRequest request) async {
-    final response = await request.get(
-        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menu/get-warungs/');
+    final response =
+        await request.get('http://127.0.0.1:8000/menu/get-warungs/');
 
     AddEditMenu editMenuData = AddEditMenu.fromJson(response);
 
@@ -255,16 +255,13 @@ class _EditMenuScreenState extends State<EditMenuScreen> {
                               onPressed: () async {
                                 // Handle save action
                                 if (_formKey.currentState!.validate()) {
-                                  // Kirim ke Django dan tunggu respons
-                                  // TODO: Ganti URL dan jangan lupa tambahkan trailing slash (/) di akhir URL!
                                   final response = await request.postJson(
-                                    "https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menu/edit-menu-flutter/$_id/",
+                                    "http://127.0.0.1:8000/menu/edit-menu-flutter/$_id/",
                                     jsonEncode(<String, dynamic>{
                                       'warung': _warung,
                                       'menu': _menu,
                                       'harga': _price,
                                       'gambar': _imageUrl,
-                                      // TODO: Sesuaikan field data sesuai dengan aplikasimu
                                     }),
                                   );
                                   if (context.mounted) {

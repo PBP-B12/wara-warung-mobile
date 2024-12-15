@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:wara_warung_mobile/screens/edit_menu_screen.dart';
+import 'package:wara_warung_mobile/screens/ratereview_menu.dart';
 import 'package:wara_warung_mobile/screens/search_screen.dart';
 
 class MenuCard extends StatelessWidget {
@@ -10,7 +11,7 @@ class MenuCard extends StatelessWidget {
   final String imageUrl;
   final String warung;
   final int idMenu;
-  final int avgRating;
+  final double avgRating;
   final CookieRequest request;
   final BuildContext context;
 
@@ -27,8 +28,8 @@ class MenuCard extends StatelessWidget {
   });
 
   void deleteMenu(int id, CookieRequest request) async {
-    final response = await request.get(
-        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menu/delete/$id?json=true');
+    final response =
+        await request.get('http://127.0.0.1:8000/menu/delete-json/$id');
     if (response['status'] == 200) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
@@ -211,9 +212,18 @@ class MenuCard extends StatelessWidget {
                     children: [
                       InkWell(
                         onTap: () {
-                          final id = idMenu;
-                          // TODO: goto Detail Page
-                          print('TODO: goto Detail Page');
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ReviewPage(
+                                      warung: warung,
+                                      menu: title,
+                                      price: price,
+                                      id: idMenu,
+                                      imageUrl: imageUrl,
+                                      avgRatings: avgRating,
+                                    )),
+                          );
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
