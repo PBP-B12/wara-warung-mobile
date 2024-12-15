@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:wara_warung_mobile/widgets/navbar.dart';
 import 'package:wara_warung_mobile/widgets/bottomnavbar.dart';
+import 'dart:convert';
 
 class UserDashboard extends StatefulWidget {
   const UserDashboard({super.key});
@@ -21,6 +24,27 @@ class _UserDashboardState extends State<UserDashboard> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+  }
+
+  // Fetch user data from Django
+  void _fetchUserData() async {
+    final request = context.read<CookieRequest>();
+    final response = await request.get("http://10.0.2.2:8000/api/user-profile/");
+
+    if (response != null) {
+      setState(() {
+        email = response['email'] ?? '';
+        phoneNumber = response['phone_number'] ?? '';
+        dateOfBirth = response['date_of_birth'] ?? '';
+        address = response['address'] ?? '';
+      });
+    }
+  }
 
   // Function to open the Edit Details Form
   void _openEditForm() {
@@ -61,16 +85,7 @@ class _UserDashboardState extends State<UserDashboard> {
               ),
             ),
             ElevatedButton(
-              onPressed: () {
-                // Update the user details
-                setState(() {
-                  email = _emailController.text;
-                  phoneNumber = _phoneController.text;
-                  dateOfBirth = _dobController.text;
-                  address = _addressController.text;
-                });
-                Navigator.of(context).pop(); // Close dialog
-              },
+              onPressed: _saveChanges, // Update the user details
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orangeAccent,
               ),
@@ -83,6 +98,40 @@ class _UserDashboardState extends State<UserDashboard> {
         );
       },
     );
+  }
+
+  // Save user data to Django
+  void _saveChanges() async {
+    final request = context.read<CookieRequest>();
+
+    final response = await request.postJson(
+      "http://127.0.0.1:8000/update-flutter/",
+      jsonEncode({
+        'email': _emailController.text,
+        'phone_number': _phoneController.text,
+        'date_of_birth': _dobController.text,
+        'address': _addressController.text,
+      }),
+    );
+
+    if (response['status'] == 'success') {
+      setState(() {
+        email = _emailController.text;
+        phoneNumber = _phoneController.text;
+        dateOfBirth = _dobController.text;
+        address = _addressController.text;
+      });
+
+      Navigator.of(context).pop(); // Close the dialog
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Profile updated successfully!")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to update profile.")),
+      );
+    }
   }
 
   // Function to build form fields
@@ -120,7 +169,7 @@ class _UserDashboardState extends State<UserDashboard> {
                       if (pickedDate != null) {
                         setState(() {
                           controller.text =
-                              "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
+                              "${pickedDate.year}-${pickedDate.month}-${pickedDate.day}";
                         });
                       }
                     },
@@ -138,191 +187,80 @@ class _UserDashboardState extends State<UserDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'My Account',
-      home: Scaffold(
-        appBar: Navbar(),
-        bottomNavigationBar: const BottomNavbar(username: "contoh"),
-        backgroundColor: const Color(0xFFFDF1E6), // Light peach background
-        body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 20),
-              // Page Title
-              const Text(
-                'My Account',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
+    return Scaffold(
+      appBar: Navbar(),
+      bottomNavigationBar: const BottomNavbar(username: "contoh"),
+      backgroundColor: const Color(0xFFFDF1E6), // Light peach background
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 20),
+            // Page Title
+            const Text(
+              'My Account',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 20),
-              // Profile Section
-              Container(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    const CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.black26,
-                      child: Icon(
-                        Icons.person,
-                        size: 60,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Welcome,',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Text(
-                      'rania',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black54,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Center(
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              menuItem('See Menu Plans', Icons.menu_book),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              menuItem('See Wishlist', Icons.favorite),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+            ),
+            const SizedBox(height: 20),
+            // Account Details Section
+            Container(
+              padding: const EdgeInsets.all(20),
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFFE4B3), Color(0xFFFFD0B3)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ),
-              ),
-              // Account Details Section
-              Container(
-                padding: const EdgeInsets.all(20),
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFE4B3), Color(0xFFFFD0B3)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 10,
+                    offset: Offset(0, 5),
                   ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 10,
-                      offset: Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Account Details',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    _detailField('Email:', email),
-                    _detailField('Phone Number:', phoneNumber),
-                    _detailField('Date of Birth:', dateOfBirth),
-                    _detailField('Address:', address),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        ElevatedButton(
-                          onPressed: _openEditForm, // Open Edit Form
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orangeAccent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 12),
-                          ),
-                          child: const Text(
-                            'Edit Details',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            // Implement delete account logic
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.redAccent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 12),
-                          ),
-                          child: const Text(
-                            'Delete Account',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                ],
               ),
-              // Add spacing below the container
-              const SizedBox(height: 40),
-            ],
-          ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Account Details',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _detailField('Email:', email),
+                  _detailField('Phone Number:', phoneNumber),
+                  _detailField('Date of Birth:', dateOfBirth),
+                  _detailField('Address:', address),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _openEditForm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orangeAccent,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                    ),
+                    child: const Text(
+                      'Edit Details',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // Menu Item Widget
-  Widget menuItem(String title, IconData icon) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.orangeAccent, size: 18),
-        const SizedBox(width: 6),
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            color: Colors.orangeAccent,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Function to display a read-only detail field
   Widget _detailField(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -345,7 +283,7 @@ class _UserDashboardState extends State<UserDashboard> {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.black12),
             ),
-            child: Text(value.isNotEmpty ? value : ''),
+            child: Text(value.isNotEmpty ? value : '-'),
           ),
         ],
       ),
