@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wara_warung_mobile/models/search.dart';
@@ -43,8 +44,13 @@ class _SearchMenuState extends State<SearchMenu> {
   }
 
   Future<Search> fetchSearchPageDatas(CookieRequest request) async {
-    final response = await request.get(
-        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/search-menu?json=true');
+    final response = await request.postJson(
+        "http://127.0.0.1:8000/menu-data/",
+        jsonEncode(<String, String>{
+          'query': "",
+          'budget': "",
+          'warung': "",
+        }));
 
     Search searchData = Search.fromJson(response);
 
@@ -58,6 +64,7 @@ class _SearchMenuState extends State<SearchMenu> {
     final request = context.watch<CookieRequest>();
     final username = request.getJsonData()['username'];
     final crossAxisCount = getCrossAxisCount(MediaQuery.of(context).size.width);
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return SingleChildScrollView(
       child: ConstrainedBox(
@@ -115,7 +122,9 @@ class _SearchMenuState extends State<SearchMenu> {
                           crossAxisCount: crossAxisCount,
                           crossAxisSpacing: 10.0,
                           mainAxisSpacing: 20.0,
-                          childAspectRatio: username != null ? 0.475 : 0.6,
+                          childAspectRatio: username != null
+                              ? screenWidth * 0.0013
+                              : screenWidth * 0.00159,
                         ),
                         itemCount: _menuResults.length,
                         itemBuilder: (context, index) {

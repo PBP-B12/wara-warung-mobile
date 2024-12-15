@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
@@ -12,18 +14,16 @@ import 'package:wara_warung_mobile/widgets/bottomnavbar.dart';
 import 'package:wara_warung_mobile/widgets/menucardv2.dart';
 
 class HomePage extends StatelessWidget {
-  final String username;
-  const HomePage({super.key, this.username = ""});
+  const HomePage({super.key});
 
   Future<List<Result>> fetchRandomMenus(CookieRequest request) async {
-    final response = await request.get(
-        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/search-menu?json=true');
+    final response =
+        await request.get('http://127.0.0.1:8000/menu/json-flutter');
     List<Result> listMenu = [];
 
     listMenu = Search.fromJson(response).results;
-
     listMenu.shuffle();
-    return listMenu.take(4).toList(); // Selects only 4 random items
+    return listMenu.take(4).toList();
   }
 
   int getCrossAxisCount(double width) {
@@ -44,10 +44,11 @@ class HomePage extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final request = context.watch<CookieRequest>();
+    final username = request.getJsonData()['username'] ?? "";
 
     return Scaffold(
       appBar: Navbar(),
-      bottomNavigationBar: BottomNavbar(username: username),
+      bottomNavigationBar: BottomNavbar(),
       body: Container(
         decoration: const BoxDecoration(color: Color(0xFFFFFBF2)),
         child: SingleChildScrollView(
@@ -272,7 +273,7 @@ class HomePage extends StatelessWidget {
                           crossAxisCount: crossAxisCount,
                           crossAxisSpacing: 10.0,
                           mainAxisSpacing: 20.0,
-                          childAspectRatio: username != "" ? 0.475 : 0.6,
+                          childAspectRatio: username != "" ? screenWidth * 0.0013 : screenWidth * 0.00159,
                         ),
                         itemCount: snapshot.data!.length,
                         itemBuilder: (context, index) {

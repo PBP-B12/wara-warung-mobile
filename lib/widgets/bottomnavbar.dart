@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:wara_warung_mobile/screens/homepage.dart';
 import 'package:wara_warung_mobile/screens/search_screen.dart';
 import 'package:wara_warung_mobile/screens/user_dashboard.dart';
 
 class BottomNavbar extends StatelessWidget {
-  final String username;
-  const BottomNavbar({super.key, this.username = "guest"});
+  const BottomNavbar({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final request = context.watch<CookieRequest>();
+    final username = request.getJsonData()['username'] ?? "";
     return Container(
-      height: 80, // Height of the bottom navbar
+      height: 70, // Height of the bottom navbar
       decoration: BoxDecoration(
         color: const Color(0xFFFF7428),
         borderRadius: const BorderRadius.only(
@@ -29,7 +32,7 @@ class BottomNavbar extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => HomePage()),
               );
             },
-            icon: const Icon(Icons.home, color: Colors.white),
+            icon: const Icon(Icons.home, color: Colors.white, size: 30,),
           ),
           IconButton(
             onPressed: () {
@@ -39,7 +42,7 @@ class BottomNavbar extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => SearchScreen()),
               );
             },
-            icon: const Icon(Icons.search, color: Colors.white),
+            icon: const Icon(Icons.search, color: Colors.white, size: 30,),
           ),
           if (username != "guest" && username != "")
             IconButton(
@@ -50,7 +53,7 @@ class BottomNavbar extends StatelessWidget {
                   MaterialPageRoute(builder: (context) => UserDashboard()),
                 );
               },
-              icon: const Icon(Icons.person, color: Colors.white),
+              icon: const Icon(Icons.person, color: Colors.white, size: 30,),
             ),
         ],
       ),
