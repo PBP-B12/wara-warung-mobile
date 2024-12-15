@@ -36,6 +36,7 @@ class _ReviewPageState extends State<ReviewPage> {
   String _reviewText = "";
   int _rating = 1;
   List<Result> _reviewResults = [];
+  double _avgRatings = 0.0;
 
   @override
   void initState() {
@@ -43,6 +44,7 @@ class _ReviewPageState extends State<ReviewPage> {
     _warung = widget.warung;
     _price = widget.price;
     _imageUrl = widget.imageUrl;
+    _avgRatings = widget.avgRatings;
     super.initState();
   }
 
@@ -54,7 +56,14 @@ class _ReviewPageState extends State<ReviewPage> {
         }));
     Review reviewData = Review.fromJson(response);
     _reviewResults = reviewData.results;
+    _avgRatings = _calculateAverageRating(_reviewResults);
     return reviewData;
+  }
+
+  double _calculateAverageRating(List<Result> reviews) {
+    if (reviews.isEmpty) return 0.0;
+    double totalRating = reviews.fold(0, (sum, review) => sum + review.rating);
+    return totalRating / reviews.length;
   }
 
   @override
@@ -185,7 +194,7 @@ class _ReviewPageState extends State<ReviewPage> {
                       ),
                       child: Center(
                         child: Text(
-                          'Avg. Rate: ${widget.avgRatings} / 5.0',
+                          'Avg. Rate: ${_avgRatings.toStringAsFixed(1)} / 5.0',
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -332,20 +341,9 @@ class _ReviewPageState extends State<ReviewPage> {
                                           content: Text('Review Submitted!'),
                                         ),
                                       );
-                                      // Refresh the page by pushing the current page again
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => ReviewPage(
-                                            warung: widget.warung,
-                                            menu: widget.menu,
-                                            price: widget.price,
-                                            imageUrl: widget.imageUrl,
-                                            id: widget.id,
-                                            avgRatings: widget.avgRatings,
-                                          ),
-                                        ),
-                                      );
+                                      // Perbarui data setelah submit
+                                      await fetchReviews(request);
+                                      setState(() {}); // Memperbarui UI
                                     }
                                   }
                                 } catch (e) {
