@@ -4,6 +4,7 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:wara_warung_mobile/widgets/navbar.dart';
 import 'package:wara_warung_mobile/widgets/bottomnavbar.dart';
 import 'dart:convert';
+import 'package:wara_warung_mobile/screens/logind.dart';
 
 class UserDashboard extends StatefulWidget {
   const UserDashboard({super.key});
@@ -153,6 +154,42 @@ class _UserDashboardState extends State<UserDashboard> {
       if (success) {
         ScaffoldMessenger.of(dialogContext).showSnackBar(
           const SnackBar(content: Text("Profile updated successfully!")),
+        );
+      }
+    }
+  }
+
+  void _deleteAccount(BuildContext context) async {
+    final request = context.read<CookieRequest>();
+
+    try {
+      final response = await request.postJson(
+        "http://127.0.0.1:8000/user_dashboard/delete/",
+        jsonEncode({}), 
+      );
+
+      if (response['status'] == 'success') {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Account deleted successfully.")),
+          );
+
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const LoginApp()),
+            (Route<dynamic> route) => false,
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Failed to delete account: ${response['message']}")),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e")),
         );
       }
     }
@@ -341,15 +378,37 @@ class _UserDashboardState extends State<UserDashboard> {
                         ),
                         ElevatedButton(
                           onPressed: () {
-                            // Implement delete account logic
+                            // Show a confirmation dialog before deleting the account
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text("Confirm Deletion"),
+                                  content: const Text("Are you sure you want to delete your account? This action cannot be undone."),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(),
+                                      child: const Text("Cancel", style: TextStyle(color: Colors.red)),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop(); // Close the dialog
+                                        _deleteAccount(context);     // Call the delete account method
+                                      },
+                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                                      child: const Text("Delete", style: TextStyle(color: Colors.white)),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.redAccent,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                           ),
                           child: const Text(
                             'Delete Account',
