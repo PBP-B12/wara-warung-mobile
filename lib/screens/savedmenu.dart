@@ -67,6 +67,7 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
           }
         },
       ),
+      backgroundColor: const Color(0xFFFFFBF2),
     );
   }
 
@@ -84,7 +85,7 @@ class SavedMenuCard extends StatelessWidget {
   final int session;
   final List<ChosenMenu> menus;
 
-  const SavedMenuCard({Key? key, required this.session, required this.menus}) : super(key: key);
+  const SavedMenuCard({Key? key, required this.session, required this.menus, }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +95,8 @@ class SavedMenuCard extends StatelessWidget {
     );
 
     return Card(
-      margin: const EdgeInsets.all(8.0),
+      margin: const EdgeInsets.all(6.0),
+      elevation: 2.0,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -105,6 +107,7 @@ class SavedMenuCard extends StatelessWidget {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
+
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: menus.map((menu) {

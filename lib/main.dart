@@ -5,6 +5,7 @@ import 'package:wara_warung_mobile/screens/homepage.dart';
 import 'package:wara_warung_mobile/screens/startmenu.dart' as screen;
 import 'startmenu.dart' as local; // Import the StartMenu file
 import 'package:wara_warung_mobile/screens/homepage.dart' as local; // Import the HomePage file
+import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
 
 void main() {
   runApp(const WaraWarungApp());
@@ -25,6 +26,7 @@ class WaraWarungApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Wara Warung',
         theme: ThemeData(
+          textTheme: GoogleFonts.poppinsTextTheme(), // Biar semua font nya Poppins
           colorScheme: ColorScheme.fromSwatch().copyWith(
             primary: Colors.orange,
             secondary: Colors.red,

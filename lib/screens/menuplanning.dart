@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'savedmenu.dart'; // Import the SavedMenuPage here
+import 'savedmenu.dart'; 
+import 'package:google_fonts/google_fonts.dart';
 
 class MenuPlanningPage extends StatefulWidget {
   const MenuPlanningPage({Key? key}) : super(key: key);
@@ -162,9 +163,12 @@ Future<void> _saveCart() async {
       final result = jsonDecode(response.body);
       if (result['status'] == 'success') {
         _showSuccessDialog('Cart saved successfully!');
+        
         setState(() {
-          _cartItems.clear();
-          _totalCartValue = 0;
+          _cartItems.clear();          // Clear cart
+          _totalCartValue = 0;         // Reset total cart value
+          _selectedWarung = null;      // Reset warung selection
+          _budgetController.text = '100000'; // Reset budget
         });
       } else {
         _showErrorDialog(result['message'] ?? 'Failed to save cart.');
@@ -353,7 +357,7 @@ void _showCartItems() {
             Row(
               children: [
                 Expanded(
-                  flex: 3,
+                  flex: 4,
                   child: DropdownButton<String>(
                     value: _selectedWarung,
                     hint: const Text('Select Warung'),
