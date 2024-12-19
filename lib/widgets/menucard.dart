@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
 
 class MenuCard extends StatelessWidget {
   final String title;
@@ -12,7 +13,7 @@ class MenuCard extends StatelessWidget {
     required this.title,
     required this.price,
     required this.imageUrl,
-    required this.warung,
+    required this.warung, required int id, required CookieRequest request, required BuildContext context,
   });
 
   @override

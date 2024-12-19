@@ -4,6 +4,7 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:wara_warung_mobile/screens/edit_menu_screen.dart';
 import 'package:wara_warung_mobile/screens/ratereview_menu.dart';
 import 'package:wara_warung_mobile/screens/search_screen.dart';
+import 'package:wara_warung_mobile/screens/wishlistpage.dart';
 
 class MenuCard extends StatelessWidget {
   final String title;
@@ -252,8 +253,12 @@ class MenuCard extends StatelessWidget {
                             InkWell(
                               onTap: () {
                                 final id = idMenu;
-                                // TODO: goto Add to List Page
-                                print('// TODO: goto Add to List Page');
+                                Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => WishlistPage()
+                                  )
+                                );
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
