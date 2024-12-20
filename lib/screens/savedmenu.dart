@@ -17,16 +17,15 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
   int? _filterBudget;
 
   List<String> _warungList = [];
-  bool _isLoadingWarung = true; // Indicates if the warung names are still loading
+  bool _isLoadingWarung = true;
 
   @override
   void initState() {
     super.initState();
     savedMenus = fetchSavedMenus();
-    _loadWarungNames(); // Fetch warung names when the page initializes
+    _loadWarungNames();
   }
 
-  // Fetch warung names
   void _loadWarungNames() async {
     setState(() {
       _isLoadingWarung = true;
@@ -39,17 +38,15 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
     });
   }
 
-  // Fetch unique warung names
   Future<List<String>> fetchWarungNames() async {
-    const String apiUrl =
-        'http://127.0.0.1:8000/menuplanning/api/warungs/'; // Replace with your actual API endpoint
+    const String apiUrl = 'http://127.0.0.1:8000/menuplanning/api/warungs/';
     try {
       final response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         if (data.containsKey('warungs') && data['warungs'] is List) {
           return (data['warungs'] as List<dynamic>)
-              .map((item) => item['nama'].toString()) // Extract 'nama' field
+              .map((item) => item['nama'].toString())
               .toList();
         } else {
           throw Exception('Unexpected data structure');
@@ -63,88 +60,101 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
     }
   }
 
-  // Open filter dialog
   void _openFilterDialog() {
-    TextEditingController budgetController = TextEditingController();
+    String? localWarungName = _filterWarungName;
+    TextEditingController budgetController = TextEditingController(
+      text: _filterBudget != null ? _filterBudget.toString() : '',
+    );
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Filter Saved Menus'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Dropdown for Warung Names
-              DropdownButton<String>(
-                isExpanded: true,
-                value: _filterWarungName,
-                hint: const Text('Select Warung'),
-                items: _isLoadingWarung
-                    ? [
-                        const DropdownMenuItem(
-                          value: null,
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+        return StatefulBuilder( 
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Filter Saved Menus'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButton<String>(
+                    isExpanded: true,
+                    value: localWarungName, 
+                    hint: const Text('Select Warung'),
+                    items: _isLoadingWarung
+                        ? [
+                            const DropdownMenuItem(
+                              value: null,
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text('Loading...'),
+                                ],
                               ),
-                              SizedBox(width: 8),
-                              Text('Loading...'),
-                            ],
-                          ),
-                        ),
-                      ]
-                    : _warungList.map((warung) {
-                        return DropdownMenuItem<String>(
-                          value: warung,
-                          child: Text(warung),
-                        );
-                      }).toList(),
-                onChanged: (newValue) {
-                  setState(() {
-                    _filterWarungName = newValue;
-                  });
-                },
+                            ),
+                          ]
+                        : _warungList.map((warung) {
+                            return DropdownMenuItem<String>(
+                              value: warung,
+                              child: Text(warung),
+                            );
+                          }).toList(),
+                    onChanged: (newValue) {
+                      setDialogState(() {
+                        localWarungName = newValue; 
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: budgetController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Budget',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                      _filterBudget = int.tryParse(value);
+                    },
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              // Input field for Budget
-              TextField(
-                controller: budgetController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Budget',
-                  border: OutlineInputBorder(),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Cancel'),
                 ),
-                onChanged: (value) {
-                  _filterBudget = int.tryParse(value);
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  // Fetch filtered menus
-                  savedMenus = fetchSavedMenus();
-                });
-                Navigator.of(context).pop();
-              },
-              child: const Text('Apply'),
-            ),
-          ],
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _filterWarungName = localWarungName; 
+                      _filterBudget = int.tryParse(budgetController.text);
+                      savedMenus = fetchSavedMenus(); 
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Apply'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
+  }
+
+  void _removeFilters() {
+    setState(() {
+      _filterWarungName = null;
+      _filterBudget = null;
+      savedMenus = fetchSavedMenus(); 
+    });
   }
 
   Future<List<ChosenMenu>> fetchSavedMenus() async {
@@ -153,7 +163,16 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
 
     if (response.statusCode == 200) {
       List<dynamic> jsonResponse = jsonDecode(response.body);
-      return jsonResponse.map((data) => ChosenMenu.fromJson(data)).toList();
+      List<ChosenMenu> menus = jsonResponse.map((data) => ChosenMenu.fromJson(data)).toList();
+
+      if (_filterWarungName != null && _filterWarungName!.isNotEmpty) {
+        menus = menus.where((menu) => menu.warungName == _filterWarungName).toList();
+      }
+      if (_filterBudget != null) {
+        menus = menus.where((menu) => menu.budget <= _filterBudget!).toList();
+      }
+
+      return menus;
     } else {
       throw Exception('Failed to load saved menus');
     }
@@ -168,7 +187,6 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
       ),
       body: Column(
         children: [
-          // Buttons below the app bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
             child: Row(
@@ -176,24 +194,41 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
               children: [
                 ElevatedButton.icon(
                   onPressed: _openFilterDialog,
-                  icon: const Icon(Icons.filter_list),
-                  label: const Text('Filter'),
+                  icon: const Icon(Icons.filter_list, color: Colors.white),
+                  label: const Text(
+                    'Filter',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orangeAccent,
+                    elevation: 2,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
+
                 ElevatedButton.icon(
-                  onPressed: null,
-                  icon: const Icon(Icons.clear),
-                  label: const Text('Remove Filters'),
+                  onPressed: _removeFilters,
+                  icon: const Icon(Icons.clear, color: Colors.white),
+                  label: const Text(
+                    'Remove Filters',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
+                    elevation: 2,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          const Divider(height: 1), // Add a divider for visual separation
+          const Divider(height: 1), 
           Expanded(
             child: FutureBuilder<List<ChosenMenu>>(
               future: savedMenus,
@@ -231,7 +266,6 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
     );
   }
 
-  // Group ChosenMenu items by save_session
   Map<int, List<ChosenMenu>> _groupBySaveSession(List<ChosenMenu> menus) {
     final Map<int, List<ChosenMenu>> grouped = {};
     for (var menu in menus) {
@@ -254,6 +288,9 @@ class SavedMenuCard extends StatelessWidget {
       (sum, menu) => sum + (menu.quantity * menu.price),
     );
 
+    final warungName = menus.isNotEmpty ? menus.first.warungName : 'Unknown';
+    final budget = menus.isNotEmpty ? 'Budget: Rp ${menus.first.budget.toStringAsFixed(0)}' : '';
+
     return Card(
       margin: const EdgeInsets.all(6.0),
       elevation: 2.0,
@@ -265,6 +302,18 @@ class SavedMenuCard extends StatelessWidget {
             Text(
               'Menu Plan $session',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+
+            Text(
+              warungName,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+
+            Text(
+              budget,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
 

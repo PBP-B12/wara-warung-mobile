@@ -6,6 +6,7 @@ class ChosenMenu {
   final double price;
   final int saveSession;
   final double budget;
+  final String warungName;
 
   ChosenMenu({
     required this.id,
@@ -15,6 +16,7 @@ class ChosenMenu {
     required this.price,
     required this.saveSession,
     required this.budget,
+    required this.warungName,
   });
 
   factory ChosenMenu.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class ChosenMenu {
       price: double.parse(json['fields']['price']),
       saveSession: json['fields']['save_session'],
       budget: double.parse(json['fields']['budget']),
+      warungName: json['fields']['warung_name'],
     );
   }
 }
