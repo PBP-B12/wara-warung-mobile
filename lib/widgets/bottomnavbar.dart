@@ -26,7 +26,7 @@ class BottomNavbar extends StatelessWidget {
         children: [
           IconButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.canPop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => HomePage()),
@@ -36,7 +36,7 @@ class BottomNavbar extends StatelessWidget {
           ),
           IconButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.canPop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => SearchScreen()),
@@ -47,7 +47,7 @@ class BottomNavbar extends StatelessWidget {
           if (username != "guest" && username != "")
             IconButton(
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.canPop(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => UserDashboard()),

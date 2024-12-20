@@ -4,29 +4,49 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:wara_warung_mobile/screens/edit_menu_screen.dart';
 import 'package:wara_warung_mobile/screens/ratereview_menu.dart';
 import 'package:wara_warung_mobile/screens/search_screen.dart';
-import 'package:wara_warung_mobile/screens/wishlistpage.dart';
 
-class MenuCard extends StatelessWidget {
+class MenuCard extends StatefulWidget {
   final String title;
+  final String warung;
   final int price;
   final String imageUrl;
-  final String warung;
   final int idMenu;
   final double avgRating;
   final CookieRequest request;
-  final BuildContext context;
+  final List<DropdownMenuItem<String>> item;
+  final String assignedCategory;
+  final Future<void> Function(String newCategory) onAssignCategory;
+  final VoidCallback onRemove; // Callback untuk tombol Remove
+  final VoidCallback onSeeDetails; // Callback untuk tombol See Details
 
   const MenuCard({
     super.key,
     required this.title,
+    required this.warung,
     required this.price,
     required this.imageUrl,
-    required this.warung,
     required this.idMenu,
     required this.avgRating,
     required this.request,
-    required this.context,
+    required this.item,
+    required this.assignedCategory,
+    required this.onAssignCategory,
+    required this.onRemove,
+    required this.onSeeDetails,
   });
+
+  @override
+  State<MenuCard> createState() => _MenuCardState();
+}
+
+class _MenuCardState extends State<MenuCard> {
+  String? selectedCategory;
+  @override
+  void initState() {
+    super.initState();
+    selectedCategory =
+        widget.assignedCategory.isNotEmpty ? widget.assignedCategory : null;
+  }
 
   void deleteMenu(int id, CookieRequest request) async {
     final response =
@@ -53,7 +73,7 @@ class MenuCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final username = request.getJsonData()['username'];
+    final username = widget.request.getJsonData()['username'];
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
@@ -72,12 +92,12 @@ class MenuCard extends StatelessWidget {
         child: Column(
           children: [
             Expanded(
-              flex: 5,
+              flex: 3,
               child: Stack(
                 children: [
                   Image.network(
                     filterQuality: FilterQuality.low,
-                    imageUrl,
+                    widget.imageUrl,
                     width: double.infinity,
                     height: double.infinity,
                     fit: BoxFit.cover,
@@ -90,7 +110,6 @@ class MenuCard extends StatelessWidget {
                           Text(
                             'Fail to Load this Image',
                             style: GoogleFonts.poppins(),
-                            textAlign: TextAlign.center,
                           )
                         ],
                       );
@@ -108,11 +127,11 @@ class MenuCard extends StatelessWidget {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => EditMenuScreen(
-                                            warung: warung,
-                                            menu: title,
-                                            price: price,
-                                            imageUrl: imageUrl,
-                                            id: idMenu,
+                                            warung: widget.warung,
+                                            menu: widget.title,
+                                            price: widget.price,
+                                            imageUrl: widget.imageUrl,
+                                            id: widget.idMenu,
                                           )));
                             },
                             child: Container(
@@ -130,7 +149,8 @@ class MenuCard extends StatelessWidget {
                             width: 5,
                           ),
                           InkWell(
-                            onTap: () => deleteMenu(idMenu, request),
+                            onTap: () =>
+                                deleteMenu(widget.idMenu, widget.request),
                             child: Container(
                                 padding: const EdgeInsets.all(7.5),
                                 decoration: BoxDecoration(
@@ -159,7 +179,7 @@ class MenuCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          title,
+                          widget.title,
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.bold,
                             fontSize: 17.5,
@@ -167,48 +187,19 @@ class MenuCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          'Rp ${price}',
+                          'Rp ${widget.price}',
                           style: GoogleFonts.poppins(),
                         ),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.location_on_outlined,
-                              color: Colors.orange,
-                              size: 15,
-                            ),
-                            Expanded(
-                              child: Text(
-                                warung,
-                                maxLines: 1,
-                                style: GoogleFonts.poppins(),
-                              ),
-                            )
-                          ],
-                        ),
-                        RichText(
-                          text: TextSpan(
-                            children: <TextSpan>[
-                              TextSpan(
-                                text: 'Rate : ',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.orange,
-                                  fontWeight: FontWeight.bold,
-                                ), // Orange color for 'Rate :'
-                              ),
-                              TextSpan(
-                                text: '${avgRating} out of 5',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.black,
-                                ), // Default color for the rest of the text
-                              ),
-                            ],
-                          ),
+                        Text(
+                          "Category : ${widget.assignedCategory.isNotEmpty ? widget.assignedCategory.padRight(15, ' ') : "None      "}",
+                          maxLines: 1,
+                          style: GoogleFonts.poppins(),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
-                  const Expanded(child: SizedBox()),
+                  const SizedBox(height: 8),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -218,12 +209,12 @@ class MenuCard extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => ReviewPage(
-                                      warung: warung,
-                                      menu: title,
-                                      price: price,
-                                      id: idMenu,
-                                      imageUrl: imageUrl,
-                                      avgRatings: avgRating,
+                                      warung: widget.warung,
+                                      menu: widget.title,
+                                      price: widget.price,
+                                      id: widget.idMenu,
+                                      imageUrl: widget.imageUrl,
+                                      avgRatings: widget.avgRating,
                                     )),
                           );
                         },
@@ -245,42 +236,98 @@ class MenuCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      if (username != null)
-                        Column(
-                          children: [
-                            const SizedBox(
-                              height: 2,
+                      const SizedBox(height: 10),
+                      InkWell(
+                        onTap: widget.onRemove,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 6, horizontal: 10),
+                          margin: const EdgeInsets.symmetric(horizontal: 10),
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(10)),
+                          child: Text(
+                            'Remove Menu',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 12.5,
                             ),
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => WishlistPage(
-                                              menu_id: idMenu,
-                                            )));
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 6, horizontal: 10),
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 10),
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                    color: Colors.red,
-                                    borderRadius: BorderRadius.circular(10)),
-                                child: Text(
-                                  'Add to List',
-                                  textAlign: TextAlign.center,
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.white,
-                                    fontSize: 12.5,
-                                  ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      // Dropdown untuk Assign Category
+                      DropdownButtonFormField<String>(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 0, horizontal: 10),
+                        value: selectedCategory,
+                        isDense: true,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 8,
+                          ),
+                        ),
+                        iconSize: 15,
+                        items: widget.item,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedCategory = value;
+                          });
+                        },
+                        hint: Text(
+                          'Select Category',
+                          style: GoogleFonts.poppins(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight
+                                  .w500), // Font lebih kecil untuk placeholder
+                        ),
+                        style: GoogleFonts.poppins(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight
+                                .w500 // Font lebih kecil untuk item yang dipilih
+                            ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Tombol Assign
+                      InkWell(
+                        onTap: () async {
+                          if (selectedCategory != null) {
+                            await widget.onAssignCategory(selectedCategory!);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Assigned category updated to $selectedCategory',
                                 ),
                               ),
+                            );
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 6, horizontal: 10),
+                          margin: const EdgeInsets.symmetric(horizontal: 10),
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                              color: Colors.orange,
+                              borderRadius: BorderRadius.circular(10)),
+                          child: Text(
+                            'Assign',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 12.5,
                             ),
-                          ],
+                          ),
                         ),
+                      ),
                     ],
                   ),
                   const SizedBox(
