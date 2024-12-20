@@ -90,6 +90,7 @@ class MenuCard extends StatelessWidget {
                           Text(
                             'Fail to Load this Image',
                             style: GoogleFonts.poppins(),
+                            textAlign: TextAlign.center,
                           )
                         ],
                       );
@@ -252,13 +253,12 @@ class MenuCard extends StatelessWidget {
                             ),
                             InkWell(
                               onTap: () {
-                                final id = idMenu;
                                 Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => WishlistPage()
-                                  )
-                                );
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => WishlistPage(
+                                              menu_id: idMenu,
+                                            )));
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(

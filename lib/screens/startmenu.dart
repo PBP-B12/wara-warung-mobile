@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wara_warung_mobile/screens/homepage.dart';
 
 class StartMenu extends StatelessWidget {
   const StartMenu({super.key});
@@ -43,7 +44,8 @@ class StartMenu extends StatelessWidget {
                 height: screenHeight * 0.4,
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage('assets/images/startmenu.png'), // Use AssetImage
+                    image: AssetImage(
+                        'assets/images/startmenu.png'), // Use AssetImage
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -60,12 +62,11 @@ class StartMenu extends StatelessWidget {
                 decoration: const BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage('assets/images/logo.png'),
-                    fit: BoxFit.contain, 
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),
             ),
-
 
             // Title (WaraWarung)
             Positioned(
@@ -106,7 +107,10 @@ class StartMenu extends StatelessWidget {
               child: GestureDetector(
                 onTap: () {
                   // Navigate to the next page
-                  Navigator.pushNamed(context, '/home');
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => HomePage()),
+                  );
                 },
                 child: Container(
                   width: screenWidth * 0.6,
