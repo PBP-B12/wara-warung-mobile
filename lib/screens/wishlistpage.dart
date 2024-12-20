@@ -107,23 +107,22 @@ class _WishlistPage extends State<WishlistPage> {
 
   Future<List<String>> fetchCategoryNames(CookieRequest request) async {
     try {
-      // Melakukan permintaan GET menggunakan CookieRequest
-      final response =
-          await request.get('http://127.0.0.1:8000/wishlist/allcategory/');
+      final response = await request.get('http://127.0.0.1:8000/wishlist/allcategory/');
 
-      // Memastikan response adalah Map
-      if (response is Map<String, dynamic> &&
-          response.containsKey('categories')) {
+      if (response is Map<String, dynamic> && response.containsKey('categories')) {
         final categories = response['categories'];
         if (categories is List) {
-          // Memastikan setiap item dalam 'categories' memiliki struktur yang benar
-          return categories.map((item) {
+          List<String> categoryNames = categories.map((item) {
             if (item is Map<String, dynamic> && item.containsKey('name')) {
               return item['name'].toString();
             } else {
               throw Exception('Unexpected item structure');
             }
           }).toList();
+
+          // Tambahkan "All Categories" di awal daftar
+          categoryNames.insert(0, 'All Categories');
+          return categoryNames;
         } else {
           throw Exception('Unexpected categories structure');
         }
@@ -348,15 +347,12 @@ class _WishlistPage extends State<WishlistPage> {
                                         const Spacer(),
                                         ElevatedButton(
                                           onPressed: () {
-                                            if (_selectedCategories != null &&
-                                                _selectedCategories!
-                                                    .isNotEmpty) {
-                                              fetchWishlistbyCategory(request,
-                                                  _selectedCategories!);
+                                            if (_selectedCategories != null && _selectedCategories != 'All Categories') {
+                                              fetchWishlistbyCategory(request, _selectedCategories!);
                                             } else {
                                               setState(() {
-                                                _isFiltering =
-                                                    false; // Reset filter jika tidak ada kategori yang dipilih
+                                                _isFiltering = false; // Reset filter jika "All Categories" dipilih
+                                                _filteredWishlist.clear();
                                               });
                                             }
                                           },
