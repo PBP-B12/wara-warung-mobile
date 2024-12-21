@@ -105,10 +105,10 @@ class MenuDrawer extends StatelessWidget {
               ),
             ),
             onTap: () {
-              Navigator.canPop(context);
-              Navigator.push(
+              Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => HomePage()),
+                MaterialPageRoute(builder: (context) => const HomePage()),
+                (Route<dynamic> route) => false, // Remove all previous routes
               );
             },
           ),

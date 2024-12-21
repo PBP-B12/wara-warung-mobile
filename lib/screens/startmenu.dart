@@ -106,11 +106,7 @@ class StartMenu extends StatelessWidget {
               left: (screenWidth - screenWidth * 0.6) / 2,
               child: GestureDetector(
                 onTap: () {
-                  // Navigate to the next page
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => HomePage()),
-                  );
+                  Navigator.pushReplacementNamed(context, '/home');
                 },
                 child: Container(
                   width: screenWidth * 0.6,

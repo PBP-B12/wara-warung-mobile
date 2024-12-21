@@ -180,9 +180,10 @@ class MenuCard extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 warung,
-                                maxLines: 1,
                                 style: GoogleFonts.poppins(),
+                                overflow: TextOverflow.ellipsis,
                               ),
+                              
                             )
                           ],
                         ),

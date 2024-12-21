@@ -1,8 +1,9 @@
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:wara_warung_mobile/models/chosenmenu.dart';
+import 'package:wara_warung_mobile/widgets/navbar.dart';
 
 class SavedMenuPage extends StatefulWidget {
   const SavedMenuPage({super.key});
@@ -70,7 +71,7 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return StatefulBuilder( 
+        return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
               title: const Text('Filter Saved Menus'),
@@ -79,7 +80,7 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
                 children: [
                   DropdownButton<String>(
                     isExpanded: true,
-                    value: localWarungName, 
+                    value: localWarungName,
                     hint: const Text('Select Warung'),
                     items: _isLoadingWarung
                         ? [
@@ -90,7 +91,8 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
                                   SizedBox(
                                     width: 16,
                                     height: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
                                   ),
                                   SizedBox(width: 8),
                                   Text('Loading...'),
@@ -106,7 +108,7 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
                           }).toList(),
                     onChanged: (newValue) {
                       setDialogState(() {
-                        localWarungName = newValue; 
+                        localWarungName = newValue;
                       });
                     },
                   ),
@@ -134,9 +136,9 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
                 ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      _filterWarungName = localWarungName; 
+                      _filterWarungName = localWarungName;
                       _filterBudget = int.tryParse(budgetController.text);
-                      savedMenus = fetchSavedMenus(); 
+                      savedMenus = fetchSavedMenus();
                     });
                     Navigator.of(context).pop();
                   },
@@ -154,20 +156,24 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
     setState(() {
       _filterWarungName = null;
       _filterBudget = null;
-      savedMenus = fetchSavedMenus(); 
+      savedMenus = fetchSavedMenus();
     });
   }
 
   Future<List<ChosenMenu>> fetchSavedMenus() async {
-    final url = Uri.parse('http://127.0.0.1:8000/menuplanning/chosen-menus/json/');
+    final url =
+        Uri.parse('http://127.0.0.1:8000/menuplanning/chosen-menus/json/');
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
       List<dynamic> jsonResponse = jsonDecode(response.body);
-      List<ChosenMenu> menus = jsonResponse.map((data) => ChosenMenu.fromJson(data)).toList();
+      List<ChosenMenu> menus =
+          jsonResponse.map((data) => ChosenMenu.fromJson(data)).toList();
 
       if (_filterWarungName != null && _filterWarungName!.isNotEmpty) {
-        menus = menus.where((menu) => menu.warungName == _filterWarungName).toList();
+        menus = menus
+            .where((menu) => menu.warungName == _filterWarungName)
+            .toList();
       }
       if (_filterBudget != null) {
         menus = menus.where((menu) => menu.budget <= _filterBudget!).toList();
@@ -182,14 +188,24 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Saved Menus'),
-        backgroundColor: const Color(0xFFFF7428),
-      ),
+      appBar: Navbar(),
       body: Column(
         children: [
+          const SizedBox(height: 15),
+          Center(
+            child: Text(
+              'Saved Menu Plans',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 25,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -198,29 +214,36 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
                   icon: const Icon(Icons.filter_list, color: Colors.white),
                   label: const Text(
                     'Filter',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orangeAccent,
                     elevation: 2,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
-
                 ElevatedButton.icon(
                   onPressed: _removeFilters,
                   icon: const Icon(Icons.clear, color: Colors.white),
                   label: const Text(
                     'Remove Filters',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
                     elevation: 2,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -229,7 +252,7 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
               ],
             ),
           ),
-          const Divider(height: 1), 
+          const Divider(height: 1),
           Expanded(
             child: FutureBuilder<List<ChosenMenu>>(
               future: savedMenus,
@@ -280,7 +303,11 @@ class SavedMenuCard extends StatelessWidget {
   final int session;
   final List<ChosenMenu> menus;
 
-  const SavedMenuCard({Key? key, required this.session, required this.menus, }) : super(key: key);
+  const SavedMenuCard({
+    Key? key,
+    required this.session,
+    required this.menus,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -290,7 +317,9 @@ class SavedMenuCard extends StatelessWidget {
     );
 
     final warungName = menus.isNotEmpty ? menus.first.warungName : 'Unknown';
-    final budget = menus.isNotEmpty ? 'Budget: Rp ${menus.first.budget.toStringAsFixed(0)}' : '';
+    final budget = menus.isNotEmpty
+        ? 'Budget: Rp ${menus.first.budget.toStringAsFixed(0)}'
+        : '';
 
     return Card(
       margin: const EdgeInsets.all(6.0),
@@ -305,19 +334,16 @@ class SavedMenuCard extends StatelessWidget {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-
             Text(
               warungName,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
-
             Text(
               budget,
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
-
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: menus.map((menu) {
