@@ -27,25 +27,37 @@ class _WishlistPage extends State<WishlistPage> {
   List<Wishlist> _filteredWishlist =
       []; // Menyimpan data wishlist yang difilter
   bool _isFiltering = false; // Menunjukkan apakah sedang dalam mode filter
-  bool alreadyChange = false;
+  late Future<List<Wishlist>> _wishlistFuture;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _categoryController = TextEditingController();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       _request = context.read<CookieRequest>();
-      if (!alreadyChange) {
-        alreadyChange = true;
-        fetchCategoryNames(_request).then((categories) {
-          setState(() {
-            _categoriesList = categories;
-            _isLoadingCategories = false;
-          });
+
+      // Fetch categories and wishlist data
+      try {
+        final categories = await fetchCategoryNames(_request);
+        setState(() {
+          _categoriesList = categories;
+          _isLoadingCategories = false;
         });
-      }
-      if (widget.menu_id != -1 && widget.menu_id != null) {
-        addMenuToWishlist(_request);
+
+        if (widget.menu_id != -1 && widget.menu_id != null) {
+          await addMenuToWishlist(_request);
+        }
+
+        _wishlistFuture = fetchWishlist(_request);
+      } catch (e) {
+        debugPrint('Error during initialization: $e');
+      } finally {
+        // Set loading to false once everything is done
+        setState(() {
+          _isLoading = false;
+        });
       }
     });
   }
@@ -164,6 +176,13 @@ class _WishlistPage extends State<WishlistPage> {
 
   Future<void> addCategory(CookieRequest request, String newCategory) async {
     try {
+      if (newCategory.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Category name cannot be empty')),
+        );
+        return;
+      }
+
       final response = await request.post(
         'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/wishlist/add-category-flutter/', // API endpoint
         jsonEncode({'category_name': newCategory}),
@@ -176,11 +195,19 @@ class _WishlistPage extends State<WishlistPage> {
             _categoriesList = categories; // Perbarui daftar kategori
           });
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Category added successfully')),
+        );
+        _categoryController.clear(); // Clear input field
       } else {
         throw Exception('Failed to add category');
       }
     } catch (error) {
       debugPrint('Error adding category: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Error adding category, please try again')),
+      );
     }
   }
 
@@ -205,320 +232,340 @@ class _WishlistPage extends State<WishlistPage> {
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
     final screenWidth = MediaQuery.of(context).size.width;
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: Navbar(),
-      body: FutureBuilder(
-        future: fetchWishlist(request),
-        builder: (context, AsyncSnapshot<List<Wishlist>> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
-              child: Text(
-                'Belum ada data wishlist.',
-                style: TextStyle(fontSize: 20, color: Color(0xff59A5D8)),
-              ),
-            );
-          } else {
-            final wishlistData = snapshot.data!;
-
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 15),
-                  Center(
+    return _isLoading
+        ? const Center(
+            child: CircularProgressIndicator(),
+          )
+        : Scaffold(
+            resizeToAvoidBottomInset: false,
+            appBar: Navbar(),
+            body: FutureBuilder(
+              future: _wishlistFuture,
+              builder: (context, AsyncSnapshot<List<Wishlist>> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(
                     child: Text(
-                      'Saved Wishlist',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        fontSize: 25,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      'Belum ada data wishlist.',
+                      style: TextStyle(fontSize: 20, color: Color(0xff59A5D8)),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Center(
-                      child: SingleChildScrollView(
-                        // Tambahkan ini untuk menghindari overflow
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            // Add Category Card
-                            SizedBox(
-                              width: double
-                                  .infinity, // Menyesuaikan lebar dengan layar
-                              child: Card(
-                                color: Colors.orange,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Add New Category:',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      TextField(
-                                        controller: _categoryController,
-                                        cursorColor: Colors
-                                            .black, // Ubah warna kursor menjadi hitam
-                                        decoration: const InputDecoration(
-                                          hintText: 'Category Name',
-                                        ),
-                                      ),
-                                      const SizedBox(
-                                          height:
-                                              16), // Beri jarak antar elemen
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          addCategory(request,
-                                              _categoryController.text);
-                                        },
-                                        child: const Text('Add Category'),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                  );
+                } else {
+                  final wishlistData = snapshot.data!;
+
+                  return SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 15),
+                        Center(
+                          child: Text(
+                            'Saved Wishlist',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
                             ),
-                            const SizedBox(height: 16.0), // Jarak antar card
-                            // Filter Card
-                            SizedBox(
-                              width: double
-                                  .infinity, // Menyesuaikan lebar dengan layar
-                              child: Card(
-                                color: Colors.orange,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Choose Category:',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Center(
+                            child: SingleChildScrollView(
+                              // Tambahkan ini untuk menghindari overflow
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  // Add Category Card
+                                  SizedBox(
+                                    width: double
+                                        .infinity, // Menyesuaikan lebar dengan layar
+                                    child: Card(
+                                      color: Colors.orange,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Add New Category:',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            TextField(
+                                              controller: _categoryController,
+                                              cursorColor: Colors
+                                                  .black, // Ubah warna kursor menjadi hitam
+                                              decoration: const InputDecoration(
+                                                hintText: 'Category Name',
+                                              ),
+                                            ),
+                                            const SizedBox(
+                                                height:
+                                                    16), // Beri jarak antar elemen
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                addCategory(request,
+                                                    _categoryController.text);
+                                              },
+                                              child: const Text('Add Category'),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      DropdownButton<String>(
-                                        value: _selectedCategories,
-                                        hint: const Text('All Categories'),
-                                        isExpanded: true,
-                                        items: _isLoadingCategories
-                                            ? [
-                                                DropdownMenuItem(
-                                                  value: null,
-                                                  child: Row(
-                                                    children: const [
-                                                      SizedBox(
-                                                        width: 16,
-                                                        height: 16,
-                                                        child:
-                                                            CircularProgressIndicator(
-                                                          strokeWidth: 2,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                      height: 16.0), // Jarak antar card
+                                  // Filter Card
+                                  SizedBox(
+                                    width: double
+                                        .infinity, // Menyesuaikan lebar dengan layar
+                                    child: Card(
+                                      color: Colors.orange,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Choose Category:',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            DropdownButton<String>(
+                                              value: _selectedCategories,
+                                              hint:
+                                                  const Text('All Categories'),
+                                              isExpanded: true,
+                                              items: _isLoadingCategories
+                                                  ? [
+                                                      DropdownMenuItem(
+                                                        value: null,
+                                                        child: Row(
+                                                          children: const [
+                                                            SizedBox(
+                                                              width: 16,
+                                                              height: 16,
+                                                              child:
+                                                                  CircularProgressIndicator(
+                                                                strokeWidth: 2,
+                                                              ),
+                                                            ),
+                                                            SizedBox(width: 8),
+                                                            Text('Loading...'),
+                                                          ],
                                                         ),
                                                       ),
-                                                      SizedBox(width: 8),
-                                                      Text('Loading...'),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ]
-                                            : (_categoriesList.isNotEmpty
-                                                ? _categoriesList
-                                                    .map((categoryName) {
-                                                    return DropdownMenuItem<
-                                                        String>(
-                                                      value: categoryName,
-                                                      child: Text(categoryName),
-                                                    );
-                                                  }).toList()
-                                                : [
-                                                    const DropdownMenuItem(
-                                                      value: null,
-                                                      child: Text(
-                                                          'No Categories Available'),
-                                                    ),
-                                                  ]),
-                                        onChanged: (newValue) {
-                                          setState(() {
-                                            _selectedCategories = newValue;
-                                          });
-                                        },
+                                                    ]
+                                                  : (_categoriesList.isNotEmpty
+                                                      ? _categoriesList
+                                                          .map((categoryName) {
+                                                          return DropdownMenuItem<
+                                                              String>(
+                                                            value: categoryName,
+                                                            child: Text(
+                                                                categoryName),
+                                                          );
+                                                        }).toList()
+                                                      : [
+                                                          const DropdownMenuItem(
+                                                            value: null,
+                                                            child: Text(
+                                                                'No Categories Available'),
+                                                          ),
+                                                        ]),
+                                              onChanged: (newValue) {
+                                                setState(() {
+                                                  _selectedCategories =
+                                                      newValue;
+                                                });
+                                              },
+                                            ),
+                                            const SizedBox(
+                                                height:
+                                                    16), // Beri jarak antar elemen
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                if (_selectedCategories !=
+                                                        null &&
+                                                    _selectedCategories !=
+                                                        'All Categories') {
+                                                  fetchWishlistbyCategory(
+                                                      request,
+                                                      _selectedCategories!);
+                                                } else {
+                                                  setState(() {
+                                                    _isFiltering =
+                                                        false; // Reset filter
+                                                    _filteredWishlist.clear();
+                                                  });
+                                                }
+                                              },
+                                              child: const Text('Filter'),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      const SizedBox(
-                                          height:
-                                              16), // Beri jarak antar elemen
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          if (_selectedCategories != null &&
-                                              _selectedCategories !=
-                                                  'All Categories') {
-                                            fetchWishlistbyCategory(
-                                                request, _selectedCategories!);
-                                          } else {
-                                            setState(() {
-                                              _isFiltering =
-                                                  false; // Reset filter
-                                              _filteredWishlist.clear();
-                                            });
-                                          }
-                                        },
-                                        child: const Text('Filter'),
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
                             ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
 
-                  // Title for Wishlist Items
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Text(
-                      'Wishlist Items',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                        // Title for Wishlist Items
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                          child: Text(
+                            'Wishlist Items',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
 
-                  const SizedBox(height: 10),
+                        const SizedBox(height: 10),
 
-                  // Grid for Menu Cards
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(10.0),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2, // Dua kartu per baris
-                      crossAxisSpacing: 8.0, // Spasi horizontal antar kartu
-                      mainAxisSpacing: 8.0, // Spasi vertikal antar kartu
-                      childAspectRatio: screenWidth * 0.00120,
-                    ),
-                    itemCount: _isFiltering
-                        ? _filteredWishlist.length
-                        : wishlistData.length,
-                    itemBuilder: (_, index) {
-                      final wishlist = _isFiltering
-                          ? _filteredWishlist[index]
-                          : wishlistData[index];
-                      return MenuCard(
-                        title: wishlist.menu.name,
-                        warung: wishlist.menu.warung,
-                        price: wishlist.menu.harga,
-                        imageUrl: wishlist.menu.gambar,
-                        idMenu: wishlist.menu.id,
-                        avgRating: 0.0,
-                        request: request,
-                        item: _isLoadingCategories
-                            ? [
-                                DropdownMenuItem(
-                                  value: null,
-                                  child: Row(
-                                    children: const [
-                                      SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(
-                                            strokeWidth: 2),
+                        // Grid for Menu Cards
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: const EdgeInsets.all(10.0),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2, // Dua kartu per baris
+                            crossAxisSpacing:
+                                8.0, // Spasi horizontal antar kartu
+                            mainAxisSpacing: 8.0, // Spasi vertikal antar kartu
+                            childAspectRatio: screenWidth * 0.00120,
+                          ),
+                          itemCount: _isFiltering
+                              ? _filteredWishlist.length
+                              : wishlistData.length,
+                          itemBuilder: (_, index) {
+                            final wishlist = _isFiltering
+                                ? _filteredWishlist[index]
+                                : wishlistData[index];
+                            return MenuCard(
+                              title: wishlist.menu.name,
+                              warung: wishlist.menu.warung,
+                              price: wishlist.menu.harga,
+                              imageUrl: wishlist.menu.gambar,
+                              idMenu: wishlist.menu.id,
+                              avgRating: 0.0,
+                              request: request,
+                              item: _isLoadingCategories
+                                  ? [
+                                      DropdownMenuItem(
+                                        value: null,
+                                        child: Row(
+                                          children: const [
+                                            SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                  strokeWidth: 2),
+                                            ),
+                                            SizedBox(width: 8),
+                                            Text('Loading...'),
+                                          ],
+                                        ),
                                       ),
-                                      SizedBox(width: 8),
-                                      Text('Loading...'),
-                                    ],
-                                  ),
-                                ),
-                              ]
-                            : (_categoriesList.isNotEmpty
-                                ? _categoriesList.map((categoryName) {
-                                    return DropdownMenuItem<String>(
-                                      value: categoryName, // Nilai kategori
-                                      child: Text(
-                                          categoryName), // Tampilkan nama kategori
-                                    );
-                                  }).toList()
-                                : [
-                                    const DropdownMenuItem(
-                                      value: null,
-                                      child: Text('No Categories Available'),
-                                    ),
-                                  ]),
-                        assignedCategory: wishlist.categories.isNotEmpty
-                            ? wishlist.categories[0].name
-                            : '',
-                        onAssignCategory: (newCategory) async {
-                          await updateCategory(
-                              request, wishlist.menu.id, newCategory);
+                                    ]
+                                  : (_categoriesList.isNotEmpty
+                                      ? _categoriesList.map((categoryName) {
+                                          return DropdownMenuItem<String>(
+                                            value:
+                                                categoryName, // Nilai kategori
+                                            child: Text(
+                                                categoryName), // Tampilkan nama kategori
+                                          );
+                                        }).toList()
+                                      : [
+                                          const DropdownMenuItem(
+                                            value: null,
+                                            child:
+                                                Text('No Categories Available'),
+                                          ),
+                                        ]),
+                              assignedCategory: wishlist.categories.isNotEmpty
+                                  ? wishlist.categories[0].name
+                                  : '',
+                              onAssignCategory: (newCategory) async {
+                                await updateCategory(
+                                    request, wishlist.menu.id, newCategory);
 
-                          // Fetch ulang data menu berdasarkan kategori yang dipilih
-                          if (_selectedCategories != null &&
-                              _selectedCategories!.isNotEmpty) {
-                            await fetchWishlistbyCategory(
-                                request, _selectedCategories!);
-                          } else {
-                            // Jika kategori tidak dipilih, reset ke semua menu
-                            setState(() {
-                              _isFiltering = false;
-                              _filteredWishlist.clear();
-                            });
-                          }
-                          setState(() {}); // Perbarui tampilan
-                        },
-                        onRemove: () async {
-                          await removeWishlistItem(request, wishlist.menu.id);
-                          setState(() {
-                            if (_isFiltering) {
-                              _filteredWishlist.removeAt(index);
-                            } else {
-                              wishlistData.removeAt(index);
-                            }
-                          });
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  '${wishlist.menu.name} has been removed from the wishlist'),
-                            ),
-                          );
-                        },
-                        onSeeDetails: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => HomePage(),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ],
-              ),
-            );
-          }
-        },
-      ),
-    );
+                                // Fetch the updated wishlist and refresh the screen
+                                setState(() {
+                                  _wishlistFuture = fetchWishlist(request);
+                                });
+
+                                // Fetch ulang data menu berdasarkan kategori yang dipilih
+                                if (_selectedCategories != null &&
+                                    _selectedCategories!.isNotEmpty) {
+                                  await fetchWishlistbyCategory(
+                                      request, _selectedCategories!);
+                                } else {
+                                  // Jika kategori tidak dipilih, reset ke semua menu
+                                  setState(() {
+                                    _isFiltering = false;
+                                    _filteredWishlist.clear();
+                                  });
+                                }
+                                setState(() {}); // Perbarui tampilan
+                              },
+                              onRemove: () async {
+                                await removeWishlistItem(
+                                    request, wishlist.menu.id);
+                                setState(() {
+                                  if (_isFiltering) {
+                                    _filteredWishlist.removeAt(index);
+                                  } else {
+                                    wishlistData.removeAt(index);
+                                  }
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                        '${wishlist.menu.name} has been removed from the wishlist'),
+                                  ),
+                                );
+                              },
+                              onSeeDetails: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => HomePage(),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              },
+            ),
+          );
   }
 }
