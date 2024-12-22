@@ -117,4 +117,4 @@ Untuk itulah WaraWarung hadir, memberikan solusi bagi wisatawan yang ingin meras
 ## 🔗 Tautan Deployment Aplikasi
 [![Build status](https://build.appcenter.ms/v0.1/apps/dff9639d-3233-42f4-abc1-c51119273735/branches/main/badge)](https://appcenter.ms)
 
-URL : Akan di sampaikan saat aplikasi sudah rilis.
+URL : https://install.appcenter.ms/orgs/warawarung/apps/warawarung/distribution_groups/public/releases/1
