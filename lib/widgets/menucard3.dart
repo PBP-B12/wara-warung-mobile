@@ -4,6 +4,7 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:wara_warung_mobile/screens/edit_menu_screen.dart';
 import 'package:wara_warung_mobile/screens/ratereview_menu.dart';
 import 'package:wara_warung_mobile/screens/search_screen.dart';
+import 'package:intl/intl.dart';
 
 class MenuCard extends StatefulWidget {
   final String title;
@@ -49,8 +50,8 @@ class _MenuCardState extends State<MenuCard> {
   }
 
   void deleteMenu(int id, CookieRequest request) async {
-    final response =
-        await request.get('http://127.0.0.1:8000/menu/delete-json/$id');
+    final response = await request.get(
+        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menu/delete-json/$id');
     if (response['status'] == 200) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
@@ -187,7 +188,7 @@ class _MenuCardState extends State<MenuCard> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          'Rp ${widget.price}',
+                          'Rp ${NumberFormat('#,###', 'id_ID').format(widget.price)}',
                           style: GoogleFonts.poppins(),
                         ),
                         Text(
@@ -284,15 +285,17 @@ class _MenuCardState extends State<MenuCard> {
                         hint: Text(
                           'Select Category',
                           style: GoogleFonts.poppins(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight
-                                  .w500), // Font lebih kecil untuk placeholder
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ), // Font lebih kecil untuk placeholder
                         ),
                         style: GoogleFonts.poppins(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight
-                                .w500 // Font lebih kecil untuk item yang dipilih
-                            ),
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w500,
+                          color: Colors
+                              .black, // Font lebih kecil untuk item yang dipilih
+                        ),
                       ),
                       const SizedBox(height: 10),
 

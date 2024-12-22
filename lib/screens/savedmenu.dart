@@ -2,8 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:wara_warung_mobile/models/chosenmenu.dart';
 import 'package:wara_warung_mobile/widgets/navbar.dart';
+import 'package:intl/intl.dart';
 
 class SavedMenuPage extends StatefulWidget {
   const SavedMenuPage({super.key});
@@ -22,33 +25,42 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
   bool _isLoadingWarung = true;
 
   @override
-  void initState() {
-    super.initState();
-    savedMenus = fetchSavedMenus();
-    _loadWarungNames();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final request = context.read<CookieRequest>();
+    _loadWarungNames(request);
+    savedMenus = fetchSavedMenus(request);
   }
 
-  void _loadWarungNames() async {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void _loadWarungNames(CookieRequest request) async {
     setState(() {
       _isLoadingWarung = true;
     });
 
-    List<String> warungNames = await fetchWarungNames();
+    List<String> warungNames = await fetchWarungNames(request);
     setState(() {
       _warungList = warungNames;
       _isLoadingWarung = false;
     });
   }
 
-  Future<List<String>> fetchWarungNames() async {
-    const String apiUrl = 'http://127.0.0.1:8000/menuplanning/api/warungs/';
+  Future<List<String>> fetchWarungNames(CookieRequest request) async {
+    const String apiUrl =
+        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menuplanning/api/warungs/flutter/';
     try {
-      final response = await http.get(Uri.parse(apiUrl));
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
+      final response = await request.get(apiUrl);
+      print(response["status"]);
+
+      if (response["status"] == 200) {
+        final Map<String, dynamic> data = response["body"];
         if (data.containsKey('warungs') && data['warungs'] is List) {
           return (data['warungs'] as List<dynamic>)
-              .map((item) => item['nama'].toString())
+              .map((item) => item["nama"].toString())
               .toList();
         } else {
           throw Exception('Unexpected data structure');
@@ -62,7 +74,7 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
     }
   }
 
-  void _openFilterDialog() {
+  void _openFilterDialog(CookieRequest request) {
     String? localWarungName = _filterWarungName;
     TextEditingController budgetController = TextEditingController(
       text: _filterBudget != null ? _filterBudget.toString() : '',
@@ -138,7 +150,7 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
                     setState(() {
                       _filterWarungName = localWarungName;
                       _filterBudget = int.tryParse(budgetController.text);
-                      savedMenus = fetchSavedMenus();
+                      savedMenus = fetchSavedMenus(request);
                     });
                     Navigator.of(context).pop();
                   },
@@ -152,21 +164,20 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
     );
   }
 
-  void _removeFilters() {
+  void _removeFilters(CookieRequest request) {
     setState(() {
       _filterWarungName = null;
       _filterBudget = null;
-      savedMenus = fetchSavedMenus();
+      savedMenus = fetchSavedMenus(request);
     });
   }
 
-  Future<List<ChosenMenu>> fetchSavedMenus() async {
-    final url =
-        Uri.parse('http://127.0.0.1:8000/menuplanning/chosen-menus/json/');
-    final response = await http.get(url);
+  Future<List<ChosenMenu>> fetchSavedMenus(CookieRequest request) async {
+    final response = await request.get(
+        "https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menuplanning/chosen-menus/json/");
 
-    if (response.statusCode == 200) {
-      List<dynamic> jsonResponse = jsonDecode(response.body);
+    if (response["status"] == 200) {
+      List<dynamic> jsonResponse = response["body"];
       List<ChosenMenu> menus =
           jsonResponse.map((data) => ChosenMenu.fromJson(data)).toList();
 
@@ -187,6 +198,7 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
 
   @override
   Widget build(BuildContext context) {
+    final request = context.read<CookieRequest>();
     return Scaffold(
       appBar: Navbar(),
       body: Column(
@@ -210,7 +222,9 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ElevatedButton.icon(
-                  onPressed: _openFilterDialog,
+                  onPressed: () {
+                    _openFilterDialog(request);
+                  },
                   icon: const Icon(Icons.filter_list, color: Colors.white),
                   label: const Text(
                     'Filter',
@@ -230,7 +244,9 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
                   ),
                 ),
                 ElevatedButton.icon(
-                  onPressed: _removeFilters,
+                  onPressed: () {
+                    _removeFilters(request);
+                  },
                   icon: const Icon(Icons.clear, color: Colors.white),
                   label: const Text(
                     'Remove Filters',
@@ -318,7 +334,7 @@ class SavedMenuCard extends StatelessWidget {
 
     final warungName = menus.isNotEmpty ? menus.first.warungName : 'Unknown';
     final budget = menus.isNotEmpty
-        ? 'Budget: Rp ${menus.first.budget.toStringAsFixed(0)}'
+        ? 'Budget: Rp ${NumberFormat('#,###', 'id_ID').format(menus.first.budget.toStringAsFixed(0))}'
         : '';
 
     return Card(
@@ -350,14 +366,14 @@ class SavedMenuCard extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Text(
-                    '${menu.quantity} x ${menu.itemName} = Rp ${(menu.quantity * menu.price).toStringAsFixed(0)}',
+                    '${menu.quantity} x ${menu.itemName} = Rp ${NumberFormat('#,###', 'id_ID').format((menu.quantity * menu.price).toStringAsFixed(0))}',
                   ),
                 );
               }).toList(),
             ),
             const SizedBox(height: 8),
             Text(
-              'Total: Rp ${totalPrice.toStringAsFixed(0)}',
+              'Total: Rp ${NumberFormat('#,###', 'id_ID').format(totalPrice.toStringAsFixed(0))}',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ],

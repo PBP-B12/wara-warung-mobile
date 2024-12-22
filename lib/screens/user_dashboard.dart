@@ -44,8 +44,8 @@ class _UserDashboardState extends State<UserDashboard> {
 
   // Fetch user data from Django
   void _fetchUserData(CookieRequest request) async {
-    final response = await request
-        .get("http://127.0.0.1:8000/user_dashboard/get-user-dashboard-data/");
+    final response = await request.get(
+        "https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/user_dashboard/get-user-dashboard-data/");
 
     if (response != null) {
       setState(() {
@@ -121,7 +121,7 @@ class _UserDashboardState extends State<UserDashboard> {
     try {
       // Send the updated user data to Django
       final response = await request.postJson(
-        "http://127.0.0.1:8000/user_dashboard/update-user/",
+        "https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/user_dashboard/update-user/",
         jsonEncode({
           'email': _emailController.text,
           'phone_number': _phoneController.text,
@@ -168,7 +168,7 @@ class _UserDashboardState extends State<UserDashboard> {
 
     try {
       final response = await request.postJson(
-        "http://127.0.0.1:8000/user_dashboard/delete/",
+        "https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/user_dashboard/delete/",
         jsonEncode({}),
       );
 

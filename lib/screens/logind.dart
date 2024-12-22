@@ -145,11 +145,12 @@ class _LoginPageState extends State<LoginPage> {
                           String username = _usernameController.text;
                           String password = _passwordController.text;
 
-                          final response = await request
-                              .login("http://127.0.0.1:8000/auth/logind/", {
-                            'username': username,
-                            'password': password,
-                          });
+                          final response = await request.login(
+                              "https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/auth/logind/",
+                              {
+                                'username': username,
+                                'password': password,
+                              });
 
                           if (request.loggedIn) {
                             String message = response['message'];

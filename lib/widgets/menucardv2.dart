@@ -5,6 +5,7 @@ import 'package:wara_warung_mobile/screens/edit_menu_screen.dart';
 import 'package:wara_warung_mobile/screens/ratereview_menu.dart';
 import 'package:wara_warung_mobile/screens/search_screen.dart';
 import 'package:wara_warung_mobile/screens/wishlistpage.dart';
+import 'package:intl/intl.dart';
 
 class MenuCard extends StatelessWidget {
   final String title;
@@ -29,8 +30,8 @@ class MenuCard extends StatelessWidget {
   });
 
   void deleteMenu(int id, CookieRequest request) async {
-    final response =
-        await request.get('http://127.0.0.1:8000/menu/delete-json/$id');
+    final response = await request.get(
+        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menu/delete-json/$id');
     if (response['status'] == 200) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
@@ -167,7 +168,7 @@ class MenuCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          'Rp ${price}',
+                          'Rp ${NumberFormat('#,###', 'id_ID').format(price)}',
                           style: GoogleFonts.poppins(),
                         ),
                         Row(
@@ -183,7 +184,6 @@ class MenuCard extends StatelessWidget {
                                 style: GoogleFonts.poppins(),
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              
                             )
                           ],
                         ),

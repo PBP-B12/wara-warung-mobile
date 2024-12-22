@@ -49,14 +49,13 @@ class _SearchMenuState extends State<SearchMenu> {
   }
 
   Future<Search> fetchSearchPageDatas(CookieRequest request) async {
-  
     final response = await request.postJson(
-            "http://127.0.0.1:8000/menu-data/",
-            jsonEncode(<String, String>{
-                'query': _query,
-                'budget': _selectedBudget.toString(),
-                'warung': "",
-            }));
+        "https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menu-data/",
+        jsonEncode(<String, String>{
+          'query': _query,
+          'budget': _selectedBudget.toString(),
+          'warung': "",
+        }));
 
     Search searchData = Search.fromJson(response);
 
@@ -225,7 +224,9 @@ class _SearchMenuState extends State<SearchMenu> {
                           crossAxisCount: crossAxisCount,
                           crossAxisSpacing: 10.0,
                           mainAxisSpacing: 20.0,
-                          childAspectRatio: username != null ? screenWidth * 0.0013 : screenWidth * 0.00159,
+                          childAspectRatio: username != null
+                              ? screenWidth * 0.0013
+                              : screenWidth * 0.00159,
                         ),
                         itemCount: _menuResults.length,
                         itemBuilder: (context, index) {

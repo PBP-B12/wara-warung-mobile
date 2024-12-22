@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:wara_warung_mobile/widgets/navbarmenuplan.dart';
 import 'savedmenu.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 class MenuPlanningPage extends StatefulWidget {
   const MenuPlanningPage({Key? key}) : super(key: key);
@@ -24,9 +27,10 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
   bool _isSaving = false;
 
   @override
-  void initState() {
-    super.initState();
-    fetchWarungNames().then((warungNames) {
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final request = context.read<CookieRequest>();
+    fetchWarungNames(request).then((warungNames) {
       setState(() {
         _warungList = warungNames;
         _isLoadingWarung = false;
@@ -34,13 +38,18 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
     });
   }
 
-  Future<List<String>> fetchWarungNames() async {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future<List<String>> fetchWarungNames(CookieRequest request) async {
     const String apiUrl =
-        'http://127.0.0.1:8000/menuplanning/api/warungs/'; // Update the URL
+        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menuplanning/api/warungs/flutter/'; // Update the URL
     try {
-      final response = await http.get(Uri.parse(apiUrl));
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
+      final response = await request.get(apiUrl);
+      if (response["status"] == 200) {
+        final Map<String, dynamic> data = response["body"];
         if (data.containsKey('warungs') && data['warungs'] is List) {
           return (data['warungs'] as List<dynamic>)
               .map((item) => item['nama'].toString())
@@ -57,17 +66,17 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
     }
   }
 
-  Future<List<Menu>> _fetchMenus() async {
+  Future<List<Menu>> _fetchMenus(CookieRequest request) async {
     if (_selectedWarung == null || _selectedWarung!.isEmpty) {
       return []; // Return empty if no warung is selected
     }
 
     final String apiUrl =
-        'http://127.0.0.1:8000/menuplanning/api/menus/$_selectedWarung/'; // Update the URL
+        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menuplanning/api/menus/flutter/$_selectedWarung/'; // Update the URL
     try {
-      final response = await http.get(Uri.parse('$apiUrl'));
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
+      final response = await request.get(apiUrl);
+      if (response["status"] == 200) {
+        final Map<String, dynamic> data = response["body"];
         if (data.containsKey('menus') && data['menus'] is List) {
           return (data['menus'] as List<dynamic>)
               .map((item) => Menu.fromJson(item))
@@ -120,7 +129,7 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
     });
   }
 
-  Future<void> _saveCart() async {
+  Future<void> _saveCart(CookieRequest request) async {
     if (_cartItems.isEmpty) {
       _showErrorDialog('Your cart is empty. Add items before saving.');
       return;
@@ -131,7 +140,7 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
     });
 
     const String apiUrl =
-        'http://127.0.0.1:8000/menuplanning/create-menu-flutter/';
+        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menuplanning/create-menu-flutter/';
     final String budget = _budgetController.text;
     final int saveSessionId =
         DateTime.now().millisecondsSinceEpoch; // Generate unique session ID
@@ -153,31 +162,20 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
     }).toList();
 
     try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(cartItemsJson), // Send as a JSON list
-      );
+      final response =
+          await request.postJson(apiUrl, jsonEncode(cartItemsJson));
 
-      if (response.statusCode == 200) {
-        final result = jsonDecode(response.body);
-        if (result['status'] == 'success') {
-          _showSuccessDialog('Cart saved successfully!');
+      if (response["status"] == "success") {
+        _showSuccessDialog('Cart saved successfully!');
 
-          setState(() {
-            _cartItems.clear(); // Clear cart
-            _totalCartValue = 0; // Reset total cart value
-            _selectedWarung = null; // Reset warung selection
-            _budgetController.text = '100000'; // Reset budget
-          });
-        } else {
-          _showErrorDialog(result['message'] ?? 'Failed to save cart.');
-        }
+        setState(() {
+          _cartItems.clear(); // Clear cart
+          _totalCartValue = 0; // Reset total cart value
+          _selectedWarung = null; // Reset warung selection
+          _budgetController.text = '100000'; // Reset budget
+        });
       } else {
-        final error = jsonDecode(response.body);
-        _showErrorDialog(error['message'] ?? 'An error occurred.');
+        _showErrorDialog(response['message'] ?? 'Failed to save cart.');
       }
     } catch (e) {
       _showErrorDialog('An error occurred: $e');
@@ -220,7 +218,7 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
     );
   }
 
-  void _showCartItems() {
+  void _showCartItems(CookieRequest request) {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -324,7 +322,9 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: _isSaving ? null : _saveCart,
+                    onPressed: () {
+                      _isSaving ? null : _saveCart(request);
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor:
                           _isSaving ? Colors.grey : const Color(0xFFFF7428),
@@ -351,7 +351,7 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-
+    final request = context.read<CookieRequest>();
     return Scaffold(
       backgroundColor: const Color(0xFFFFFBF2),
       appBar: NavbarMenuPlan(),
@@ -427,7 +427,7 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
             const SizedBox(height: 16),
             Expanded(
               child: FutureBuilder<List<Menu>>(
-                future: _fetchMenus(),
+                future: _fetchMenus(request),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -466,7 +466,9 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showCartItems,
+        onPressed: () {
+          _showCartItems(request);
+        },
         backgroundColor: const Color(0xFFFF7428),
         child: const Icon(Icons.shopping_cart),
       ),
@@ -510,8 +512,7 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.error_outline_sharp,
-                            size: 30),
+                        const Icon(Icons.error_outline_sharp, size: 30),
                         Text(
                           'Fail Load\nImage',
                           textAlign: TextAlign.center,
@@ -540,7 +541,7 @@ class _MenuPlanningPageState extends State<MenuPlanningPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Rp $price',
+                    'Rp ${NumberFormat('#,###', 'id_ID').format(price)}',
                     style: const TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ],

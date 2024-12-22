@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,7 +12,7 @@ import 'package:wara_warung_mobile/widgets/navbar.dart';
 
 class WishlistPage extends StatefulWidget {
   final int menu_id;
-  const WishlistPage({super.key, required this.menu_id});
+  WishlistPage({super.key, required this.menu_id});
 
   @override
   State<WishlistPage> createState() => _WishlistPage();
@@ -19,18 +20,41 @@ class WishlistPage extends StatefulWidget {
 
 class _WishlistPage extends State<WishlistPage> {
   late CookieRequest _request;
+  late TextEditingController _categoryController;
   String? _selectedCategories;
   bool _isLoadingCategories = true;
   List<String> _categoriesList = [];
   List<Wishlist> _filteredWishlist =
       []; // Menyimpan data wishlist yang difilter
   bool _isFiltering = false; // Menunjukkan apakah sedang dalam mode filter
+  bool alreadyChange = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _categoryController = TextEditingController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _request = context.read<CookieRequest>();
+      if (!alreadyChange) {
+        alreadyChange = true;
+        fetchCategoryNames(_request).then((categories) {
+          setState(() {
+            _categoriesList = categories;
+            _isLoadingCategories = false;
+          });
+        });
+      }
+      if (widget.menu_id != -1 && widget.menu_id != null) {
+        addMenuToWishlist(_request);
+      }
+    });
+  }
 
   Future<void> addMenuToWishlist(CookieRequest request) async {
     try {
       // Menambahkan menu baru ke wishlist
       final response = await request.post(
-        'http://127.0.0.1:8000/wishlist/add_to_wishlist_flutter/',
+        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/wishlist/add_to_wishlist_flutter/',
         jsonEncode({'menu_id': widget.menu_id}),
       );
 
@@ -59,7 +83,8 @@ class _WishlistPage extends State<WishlistPage> {
   }
 
   Future<List<Wishlist>> fetchWishlist(CookieRequest request) async {
-    final response = await request.get('http://127.0.0.1:8000/wishlist/json');
+    final response = await request
+        .get('https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/wishlist/json');
 
     List<Wishlist> listItem = [];
     for (var d in response) {
@@ -74,7 +99,7 @@ class _WishlistPage extends State<WishlistPage> {
       CookieRequest request, String categoryName) async {
     try {
       final response = await request.postJson(
-        'http://127.0.0.1:8000/wishlist/show_wishlist_by_category/',
+        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/wishlist/show_wishlist_by_category/',
         jsonEncode({'category_name': categoryName}),
       );
 
@@ -101,14 +126,14 @@ class _WishlistPage extends State<WishlistPage> {
     // Contoh penghapusan item melalui API
     // final response = await request.delete('/wishlist/$menuId');
     final response = await request.postJson(
-        "http://127.0.0.1:8000/wishlist/remove-wishlist/",
+        "https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/wishlist/remove-wishlist/",
         jsonEncode(<String, String>{'menu_id': menuId.toString()}));
   }
 
   Future<List<String>> fetchCategoryNames(CookieRequest request) async {
     try {
-      final response =
-          await request.get('http://127.0.0.1:8000/wishlist/allcategory/');
+      final response = await request.get(
+          'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/wishlist/allcategory/');
 
       if (response is Map<String, dynamic> &&
           response.containsKey('categories')) {
@@ -140,7 +165,7 @@ class _WishlistPage extends State<WishlistPage> {
   Future<void> addCategory(CookieRequest request, String newCategory) async {
     try {
       final response = await request.post(
-        'http://127.0.0.1:8000/wishlist/add-category-flutter/', // API endpoint
+        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/wishlist/add-category-flutter/', // API endpoint
         jsonEncode({'category_name': newCategory}),
       );
 
@@ -160,29 +185,15 @@ class _WishlistPage extends State<WishlistPage> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _request = context.watch<CookieRequest>(); // Inisialisasi _request
-    if (_isLoadingCategories) {
-      fetchCategoryNames(_request).then((categories) {
-        setState(() {
-          _categoriesList = categories;
-          _isLoadingCategories = false;
-        });
-      });
-    }
-    if (widget.menu_id != -1) addMenuToWishlist(_request);
-  }
-
-  @override
-  void initState() {
-    super.initState();
+  void dispose() {
+    _categoryController.dispose();
+    super.dispose();
   }
 
   Future<void> updateCategory(
       CookieRequest request, int menuId, String newCategory) async {
     await request.post(
-      'http://127.0.0.1:8000/wishlist/assign_category_to_item_flutter/', // Pastikan trailing slash
+      'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/wishlist/assign_category_to_item_flutter/', // Pastikan trailing slash
       jsonEncode({
         'category_name': newCategory,
         'menu_id': menuId,
@@ -193,9 +204,9 @@ class _WishlistPage extends State<WishlistPage> {
   @override
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
-    final TextEditingController categoryController = TextEditingController();
     final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: Navbar(),
       body: FutureBuilder(
         future: fetchWishlist(request),
@@ -229,148 +240,158 @@ class _WishlistPage extends State<WishlistPage> {
                   ),
                   const SizedBox(height: 10),
                   Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Center(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Center(
+                      child: SingleChildScrollView(
+                        // Tambahkan ini untuk menghindari overflow
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             // Add Category Card
                             SizedBox(
-                                width: 200, // Ukuran tetap
-                                height: 150,
-                                child: Card(
-                                  color: Colors.orange,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10)),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'Add New Category:',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                              width: double
+                                  .infinity, // Menyesuaikan lebar dengan layar
+                              child: Card(
+                                color: Colors.orange,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Add New Category:',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                        TextField(
-                                          controller: categoryController,
-                                          decoration: const InputDecoration(
-                                              hintText: 'Category Name'),
+                                      ),
+                                      TextField(
+                                        controller: _categoryController,
+                                        cursorColor: Colors
+                                            .black, // Ubah warna kursor menjadi hitam
+                                        decoration: const InputDecoration(
+                                          hintText: 'Category Name',
                                         ),
-                                        const Spacer(),
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            addCategory(request,
-                                                categoryController.text);
-                                          },
-                                          child: const Text('Add Category'),
-                                        ),
-                                      ],
-                                    ),
+                                      ),
+                                      const SizedBox(
+                                          height:
+                                              16), // Beri jarak antar elemen
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          addCategory(request,
+                                              _categoryController.text);
+                                        },
+                                        child: const Text('Add Category'),
+                                      ),
+                                    ],
                                   ),
-                                )),
-                            const SizedBox(width: 16.0), // Jarak antar card
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16.0), // Jarak antar card
                             // Filter Card
                             SizedBox(
-                                width: double
-                                    .infinity, // Menyesuaikan lebar dengan layar
-                                height: 150,
-                                child: Card(
-                                  color: Colors.orange,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10)),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'Choose Category:',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                              width: double
+                                  .infinity, // Menyesuaikan lebar dengan layar
+                              child: Card(
+                                color: Colors.orange,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Choose Category:',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                        DropdownButton<String>(
-                                          value: _selectedCategories,
-                                          hint: const Text(
-                                              'All Categories'), // Placeholder
-                                          isExpanded:
-                                              true, // Dropdown akan mengambil lebar penuh
-                                          items: _isLoadingCategories
-                                              ? [
-                                                  DropdownMenuItem(
-                                                    value: null,
-                                                    child: Row(
-                                                      children: const [
-                                                        SizedBox(
-                                                          width: 16,
-                                                          height: 16,
-                                                          child:
-                                                              CircularProgressIndicator(
-                                                                  strokeWidth:
-                                                                      2),
+                                      ),
+                                      DropdownButton<String>(
+                                        value: _selectedCategories,
+                                        hint: const Text('All Categories'),
+                                        isExpanded: true,
+                                        items: _isLoadingCategories
+                                            ? [
+                                                DropdownMenuItem(
+                                                  value: null,
+                                                  child: Row(
+                                                    children: const [
+                                                      SizedBox(
+                                                        width: 16,
+                                                        height: 16,
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                          strokeWidth: 2,
                                                         ),
-                                                        SizedBox(width: 8),
-                                                        Text('Loading...'),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ]
-                                              : (_categoriesList.isNotEmpty
-                                                  ? _categoriesList
-                                                      .map((categoryName) {
-                                                      return DropdownMenuItem<
-                                                          String>(
-                                                        value:
-                                                            categoryName, // Nilai kategori
-                                                        child: Text(
-                                                            categoryName), // Tampilkan nama kategori
-                                                      );
-                                                    }).toList()
-                                                  : [
-                                                      const DropdownMenuItem(
-                                                        value: null,
-                                                        child: Text(
-                                                            'No Categories Available'),
                                                       ),
-                                                    ]),
-                                          onChanged: (newValue) {
+                                                      SizedBox(width: 8),
+                                                      Text('Loading...'),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ]
+                                            : (_categoriesList.isNotEmpty
+                                                ? _categoriesList
+                                                    .map((categoryName) {
+                                                    return DropdownMenuItem<
+                                                        String>(
+                                                      value: categoryName,
+                                                      child: Text(categoryName),
+                                                    );
+                                                  }).toList()
+                                                : [
+                                                    const DropdownMenuItem(
+                                                      value: null,
+                                                      child: Text(
+                                                          'No Categories Available'),
+                                                    ),
+                                                  ]),
+                                        onChanged: (newValue) {
+                                          setState(() {
+                                            _selectedCategories = newValue;
+                                          });
+                                        },
+                                      ),
+                                      const SizedBox(
+                                          height:
+                                              16), // Beri jarak antar elemen
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          if (_selectedCategories != null &&
+                                              _selectedCategories !=
+                                                  'All Categories') {
+                                            fetchWishlistbyCategory(
+                                                request, _selectedCategories!);
+                                          } else {
                                             setState(() {
-                                              _selectedCategories = newValue;
+                                              _isFiltering =
+                                                  false; // Reset filter
+                                              _filteredWishlist.clear();
                                             });
-                                          },
-                                        ),
-                                        const Spacer(),
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            if (_selectedCategories != null &&
-                                                _selectedCategories !=
-                                                    'All Categories') {
-                                              fetchWishlistbyCategory(request,
-                                                  _selectedCategories!);
-                                            } else {
-                                              setState(() {
-                                                _isFiltering =
-                                                    false; // Reset filter jika "All Categories" dipilih
-                                                _filteredWishlist.clear();
-                                              });
-                                            }
-                                          },
-                                          child: const Text('Filter'),
-                                        ),
-                                      ],
-                                    ),
+                                          }
+                                        },
+                                        child: const Text('Filter'),
+                                      ),
+                                    ],
                                   ),
-                                ))
+                                ),
+                              ),
+                            ),
                           ],
                         ),
-                      )),
+                      ),
+                    ),
+                  ),
 
                   // Title for Wishlist Items
                   Padding(
@@ -395,7 +416,7 @@ class _WishlistPage extends State<WishlistPage> {
                       crossAxisCount: 2, // Dua kartu per baris
                       crossAxisSpacing: 8.0, // Spasi horizontal antar kartu
                       mainAxisSpacing: 8.0, // Spasi vertikal antar kartu
-                      childAspectRatio: screenWidth * 0.00125,
+                      childAspectRatio: screenWidth * 0.00120,
                     ),
                     itemCount: _isFiltering
                         ? _filteredWishlist.length

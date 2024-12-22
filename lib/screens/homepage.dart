@@ -17,8 +17,8 @@ class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   Future<List<Result>> fetchRandomMenus(CookieRequest request) async {
-    final response =
-        await request.get('http://127.0.0.1:8000/menu/json-flutter');
+    final response = await request.get(
+        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menu/json-flutter');
     List<Result> listMenu = [];
 
     listMenu = Search.fromJson(response).results;
@@ -45,7 +45,6 @@ class HomePage extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
     final request = context.watch<CookieRequest>();
     final username = request.getJsonData()['username'] ?? "";
-    print(username);
 
     return PopScope(
         canPop: false,
@@ -279,7 +278,7 @@ class HomePage extends StatelessWidget {
                             physics: NeverScrollableScrollPhysics(),
                             padding: const EdgeInsets.symmetric(
                               vertical: 10,
-                              horizontal: 30,
+                              horizontal: 25,
                             ),
                             gridDelegate:
                                 SliverGridDelegateWithFixedCrossAxisCount(
