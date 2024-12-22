@@ -54,7 +54,6 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
         'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menuplanning/api/warungs/flutter/';
     try {
       final response = await request.get(apiUrl);
-      print(response["status"]);
 
       if (response["status"] == 200) {
         final Map<String, dynamic> data = response["body"];
@@ -334,7 +333,7 @@ class SavedMenuCard extends StatelessWidget {
 
     final warungName = menus.isNotEmpty ? menus.first.warungName : 'Unknown';
     final budget = menus.isNotEmpty
-        ? 'Budget: Rp ${NumberFormat('#,###', 'id_ID').format(menus.first.budget.toStringAsFixed(0))}'
+        ? 'Budget: Rp ${NumberFormat('#,###', 'id_ID').format(menus.first.budget)}'
         : '';
 
     return Card(
@@ -366,14 +365,14 @@ class SavedMenuCard extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Text(
-                    '${menu.quantity} x ${menu.itemName} = Rp ${NumberFormat('#,###', 'id_ID').format((menu.quantity * menu.price).toStringAsFixed(0))}',
+                    '${menu.quantity} x ${menu.itemName} = Rp ${NumberFormat('#,###', 'id_ID').format((menu.quantity * menu.price))}',
                   ),
                 );
               }).toList(),
             ),
             const SizedBox(height: 8),
             Text(
-              'Total: Rp ${NumberFormat('#,###', 'id_ID').format(totalPrice.toStringAsFixed(0))}',
+              'Total: Rp ${NumberFormat('#,###', 'id_ID').format(totalPrice)}',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ],

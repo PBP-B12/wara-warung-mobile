@@ -3,7 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:wara_warung_mobile/screens/homepage.dart';
+import 'package:wara_warung_mobile/screens/menuplanning.dart';
 import 'package:wara_warung_mobile/screens/search_screen.dart';
+import 'package:wara_warung_mobile/screens/user_dashboard.dart';
 import '../screens/add_menu_screen.dart';
 import 'package:wara_warung_mobile/screens/logind.dart';
 
@@ -136,7 +138,11 @@ class MenuDrawer extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                Navigator.canPop(context); // Kembali ke Search Screen
+                Navigator.canPop(context);
+                Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MenuPlanningPage()),
+              );
               },
             ),
           if (username != null)
@@ -148,7 +154,11 @@ class MenuDrawer extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                Navigator.canPop(context); // Kembali ke Search Screen
+                Navigator.canPop(context);
+                Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => UserDashboard()),
+              );
               },
             ),
           if (username == "admin")
