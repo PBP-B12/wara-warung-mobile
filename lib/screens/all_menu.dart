@@ -45,7 +45,7 @@ class _SearchMenuState extends State<SearchMenu> {
 
   Future<Search> fetchSearchPageDatas(CookieRequest request) async {
     final response = await request.postJson(
-        "http://127.0.0.1:8000/menu-data/",
+        "https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menu-data/",
         jsonEncode(<String, String>{
           'query': "",
           'budget': "",

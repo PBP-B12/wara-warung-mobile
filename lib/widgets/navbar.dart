@@ -34,18 +34,37 @@ class Navbar extends StatelessWidget implements PreferredSizeWidget {
       ),
       child: AppBar(
         backgroundColor: Colors.white, // Warna latar belakang AppBar
+
         elevation:
             0, // Setel elevation ke 0 karena kita menggunakan shadow custom
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child:
-              Image.asset('assets/images/logo.png'), // Ganti dengan path logo
+        leading: Navigator.canPop(context)
+            ? BackButton(
+                color: Colors.black, // Warna ikon back
+                onPressed: () => Navigator.pop(context),
+              )
+            : const SizedBox(width: 32),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Wara',
+              style: GoogleFonts.poppins(
+                  color: Colors.black, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(width: 8),
+            Image.asset(
+              'assets/images/logo.png',
+              height: 32,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Warung',
+              style: GoogleFonts.poppins(
+                  color: Colors.black, fontWeight: FontWeight.bold),
+            ),
+          ],
         ),
-        title: Text(
-          'WaraWarung',
-          style: GoogleFonts.poppins(
-              color: Colors.black, fontWeight: FontWeight.bold),
-        ),
+        centerTitle: true,
         actions: [
           IconButton(
             icon: Icon(Icons.menu, color: Colors.black),
@@ -86,10 +105,10 @@ class MenuDrawer extends StatelessWidget {
               ),
             ),
             onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
+              Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => HomePage()),
+                MaterialPageRoute(builder: (context) => const HomePage()),
+                (Route<dynamic> route) => false, // Remove all previous routes
               );
             },
           ),
@@ -101,7 +120,7 @@ class MenuDrawer extends StatelessWidget {
               ),
             ),
             onTap: () {
-              Navigator.pop(context);
+              Navigator.canPop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => SearchScreen()),
@@ -117,7 +136,7 @@ class MenuDrawer extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                Navigator.pop(context); // Kembali ke Search Screen
+                Navigator.canPop(context); // Kembali ke Search Screen
               },
             ),
           if (username != null)
@@ -129,7 +148,7 @@ class MenuDrawer extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                Navigator.pop(context); // Kembali ke Search Screen
+                Navigator.canPop(context); // Kembali ke Search Screen
               },
             ),
           if (username == "admin")
@@ -141,7 +160,7 @@ class MenuDrawer extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                Navigator.pop(context); // Tutup drawer
+                Navigator.canPop(context); // Tutup drawer
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => AddNewMenuScreen()),
@@ -158,10 +177,10 @@ class MenuDrawer extends StatelessWidget {
                 ),
               ),
               onPressed: () {
-                Navigator.pop(context);
-                Navigator.push(
+                Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginApp()),
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                  (route) => false, // Menghapus semua route sebelumnya
                 );
               },
               child: Text('Log In',
@@ -176,8 +195,8 @@ class MenuDrawer extends StatelessWidget {
                 ),
               ),
               onPressed: () async {
-                final response =
-                    await request.logout("http://127.0.0.1:8000/auth/logoutd/");
+                final response = await request.logout(
+                    "https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/auth/logoutd/");
                 String message = response["message"];
                 if (context.mounted) {
                   if (response['status']) {
@@ -185,10 +204,11 @@ class MenuDrawer extends StatelessWidget {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       content: Text("$message Sampai jumpa, $uname."),
                     ));
-                    Navigator.pushReplacement(
+                    Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
                           builder: (context) => const LoginPage()),
+                      (route) => false, // Menghapus semua route sebelumnya
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(

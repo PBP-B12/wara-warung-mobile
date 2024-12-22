@@ -1,7 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:wara_warung_mobile/models/chosenmenu.dart';
+import 'package:wara_warung_mobile/widgets/navbar.dart';
+import 'package:intl/intl.dart';
 
 class SavedMenuPage extends StatefulWidget {
   const SavedMenuPage({super.key});
@@ -20,33 +25,42 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
   bool _isLoadingWarung = true;
 
   @override
-  void initState() {
-    super.initState();
-    savedMenus = fetchSavedMenus();
-    _loadWarungNames();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final request = context.read<CookieRequest>();
+    _loadWarungNames(request);
+    savedMenus = fetchSavedMenus(request);
   }
 
-  void _loadWarungNames() async {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void _loadWarungNames(CookieRequest request) async {
     setState(() {
       _isLoadingWarung = true;
     });
 
-    List<String> warungNames = await fetchWarungNames();
+    List<String> warungNames = await fetchWarungNames(request);
     setState(() {
       _warungList = warungNames;
       _isLoadingWarung = false;
     });
   }
 
-  Future<List<String>> fetchWarungNames() async {
-    const String apiUrl = 'http://127.0.0.1:8000/menuplanning/api/warungs/';
+  Future<List<String>> fetchWarungNames(CookieRequest request) async {
+    const String apiUrl =
+        'https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menuplanning/api/warungs/flutter/';
     try {
-      final response = await http.get(Uri.parse(apiUrl));
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
+      final response = await request.get(apiUrl);
+      print(response["status"]);
+
+      if (response["status"] == 200) {
+        final Map<String, dynamic> data = response["body"];
         if (data.containsKey('warungs') && data['warungs'] is List) {
           return (data['warungs'] as List<dynamic>)
-              .map((item) => item['nama'].toString())
+              .map((item) => item["nama"].toString())
               .toList();
         } else {
           throw Exception('Unexpected data structure');
@@ -60,7 +74,7 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
     }
   }
 
-  void _openFilterDialog() {
+  void _openFilterDialog(CookieRequest request) {
     String? localWarungName = _filterWarungName;
     TextEditingController budgetController = TextEditingController(
       text: _filterBudget != null ? _filterBudget.toString() : '',
@@ -69,7 +83,7 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return StatefulBuilder( 
+        return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
               title: const Text('Filter Saved Menus'),
@@ -78,7 +92,7 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
                 children: [
                   DropdownButton<String>(
                     isExpanded: true,
-                    value: localWarungName, 
+                    value: localWarungName,
                     hint: const Text('Select Warung'),
                     items: _isLoadingWarung
                         ? [
@@ -89,7 +103,8 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
                                   SizedBox(
                                     width: 16,
                                     height: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
                                   ),
                                   SizedBox(width: 8),
                                   Text('Loading...'),
@@ -105,7 +120,7 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
                           }).toList(),
                     onChanged: (newValue) {
                       setDialogState(() {
-                        localWarungName = newValue; 
+                        localWarungName = newValue;
                       });
                     },
                   ),
@@ -133,9 +148,9 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
                 ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      _filterWarungName = localWarungName; 
+                      _filterWarungName = localWarungName;
                       _filterBudget = int.tryParse(budgetController.text);
-                      savedMenus = fetchSavedMenus(); 
+                      savedMenus = fetchSavedMenus(request);
                     });
                     Navigator.of(context).pop();
                   },
@@ -149,24 +164,27 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
     );
   }
 
-  void _removeFilters() {
+  void _removeFilters(CookieRequest request) {
     setState(() {
       _filterWarungName = null;
       _filterBudget = null;
-      savedMenus = fetchSavedMenus(); 
+      savedMenus = fetchSavedMenus(request);
     });
   }
 
-  Future<List<ChosenMenu>> fetchSavedMenus() async {
-    final url = Uri.parse('http://127.0.0.1:8000/menuplanning/chosen-menus/json/');
-    final response = await http.get(url);
+  Future<List<ChosenMenu>> fetchSavedMenus(CookieRequest request) async {
+    final response = await request.get(
+        "https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/menuplanning/chosen-menus/json/");
 
-    if (response.statusCode == 200) {
-      List<dynamic> jsonResponse = jsonDecode(response.body);
-      List<ChosenMenu> menus = jsonResponse.map((data) => ChosenMenu.fromJson(data)).toList();
+    if (response["status"] == 200) {
+      List<dynamic> jsonResponse = response["body"];
+      List<ChosenMenu> menus =
+          jsonResponse.map((data) => ChosenMenu.fromJson(data)).toList();
 
       if (_filterWarungName != null && _filterWarungName!.isNotEmpty) {
-        menus = menus.where((menu) => menu.warungName == _filterWarungName).toList();
+        menus = menus
+            .where((menu) => menu.warungName == _filterWarungName)
+            .toList();
       }
       if (_filterBudget != null) {
         menus = menus.where((menu) => menu.budget <= _filterBudget!).toList();
@@ -180,46 +198,68 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
 
   @override
   Widget build(BuildContext context) {
+    final request = context.read<CookieRequest>();
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Saved Menus'),
-        backgroundColor: const Color(0xFFFF7428),
-      ),
+      appBar: Navbar(),
       body: Column(
         children: [
+          const SizedBox(height: 15),
+          Center(
+            child: Text(
+              'Saved Menu Plans',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 25,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ElevatedButton.icon(
-                  onPressed: _openFilterDialog,
+                  onPressed: () {
+                    _openFilterDialog(request);
+                  },
                   icon: const Icon(Icons.filter_list, color: Colors.white),
                   label: const Text(
                     'Filter',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orangeAccent,
                     elevation: 2,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
-
                 ElevatedButton.icon(
-                  onPressed: _removeFilters,
+                  onPressed: () {
+                    _removeFilters(request);
+                  },
                   icon: const Icon(Icons.clear, color: Colors.white),
                   label: const Text(
                     'Remove Filters',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
                     elevation: 2,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -228,7 +268,7 @@ class _SavedMenuPageState extends State<SavedMenuPage> {
               ],
             ),
           ),
-          const Divider(height: 1), 
+          const Divider(height: 1),
           Expanded(
             child: FutureBuilder<List<ChosenMenu>>(
               future: savedMenus,
@@ -279,7 +319,11 @@ class SavedMenuCard extends StatelessWidget {
   final int session;
   final List<ChosenMenu> menus;
 
-  const SavedMenuCard({Key? key, required this.session, required this.menus, }) : super(key: key);
+  const SavedMenuCard({
+    Key? key,
+    required this.session,
+    required this.menus,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -289,7 +333,9 @@ class SavedMenuCard extends StatelessWidget {
     );
 
     final warungName = menus.isNotEmpty ? menus.first.warungName : 'Unknown';
-    final budget = menus.isNotEmpty ? 'Budget: Rp ${menus.first.budget.toStringAsFixed(0)}' : '';
+    final budget = menus.isNotEmpty
+        ? 'Budget: Rp ${NumberFormat('#,###', 'id_ID').format(menus.first.budget.toStringAsFixed(0))}'
+        : '';
 
     return Card(
       margin: const EdgeInsets.all(6.0),
@@ -304,33 +350,30 @@ class SavedMenuCard extends StatelessWidget {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-
             Text(
               warungName,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
-
             Text(
               budget,
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
-
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: menus.map((menu) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Text(
-                    '${menu.quantity} x ${menu.itemName} = Rp ${(menu.quantity * menu.price).toStringAsFixed(0)}',
+                    '${menu.quantity} x ${menu.itemName} = Rp ${NumberFormat('#,###', 'id_ID').format((menu.quantity * menu.price).toStringAsFixed(0))}',
                   ),
                 );
               }).toList(),
             ),
             const SizedBox(height: 8),
             Text(
-              'Total: Rp ${totalPrice.toStringAsFixed(0)}',
+              'Total: Rp ${NumberFormat('#,###', 'id_ID').format(totalPrice.toStringAsFixed(0))}',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ],

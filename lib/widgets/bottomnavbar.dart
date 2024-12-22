@@ -26,34 +26,46 @@ class BottomNavbar extends StatelessWidget {
         children: [
           IconButton(
             onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
+              Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => HomePage()),
+                MaterialPageRoute(builder: (context) => const HomePage()),
+                (Route<dynamic> route) => false, // Remove all previous routes
               );
             },
-            icon: const Icon(Icons.home, color: Colors.white, size: 30,),
+            icon: const Icon(
+              Icons.home,
+              color: Colors.white,
+              size: 30,
+            ),
           ),
           IconButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.canPop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => SearchScreen()),
               );
             },
-            icon: const Icon(Icons.search, color: Colors.white, size: 30,),
+            icon: const Icon(
+              Icons.search,
+              color: Colors.white,
+              size: 30,
+            ),
           ),
           if (username != "guest" && username != "")
             IconButton(
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.canPop(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => UserDashboard()),
                 );
               },
-              icon: const Icon(Icons.person, color: Colors.white, size: 30,),
+              icon: const Icon(
+                Icons.person,
+                color: Colors.white,
+                size: 30,
+              ),
             ),
         ],
       ),

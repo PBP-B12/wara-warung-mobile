@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:wara_warung_mobile/screens/homepage.dart';
 import 'package:wara_warung_mobile/screens/startmenu.dart';
-import 'package:wara_warung_mobile/screens/user_dashboard.dart';
+import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
 
 void main() {
   runApp(const WaraWarungApp());
@@ -23,7 +23,8 @@ class WaraWarungApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Wara Warung',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSwatch().copyWith(
+          textTheme: GoogleFonts.poppinsTextTheme(),
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange).copyWith(
             primary: Colors.orange,
             secondary: Colors.red,
           ),
@@ -35,8 +36,6 @@ class WaraWarungApp extends StatelessWidget {
               const StartMenu(), // StartMenu is the initial screen
           '/home': (context) =>
               const HomePage(), // HomePage is the second screen
-          '/user_dashboard': (context) =>
-              const UserDashboard(), // UserDashboard is the third screen
         },
       ),
     );

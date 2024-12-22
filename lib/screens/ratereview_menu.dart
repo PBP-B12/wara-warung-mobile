@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:wara_warung_mobile/models/review.dart';
+import 'package:wara_warung_mobile/widgets/navbar.dart';
+import 'package:intl/intl.dart';
 
 class ReviewPage extends StatefulWidget {
   final String warung;
@@ -37,6 +39,14 @@ class _ReviewPageState extends State<ReviewPage> {
   int _rating = 1;
   List<Result> _reviewResults = [];
   double _avgRatings = 0.0;
+  late Future<Review> _futureReviews;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final request = context.read<CookieRequest>();
+    _futureReviews = fetchReviews(request); // Fetch reviews safely
+  }
 
   @override
   void initState() {
@@ -50,13 +60,16 @@ class _ReviewPageState extends State<ReviewPage> {
 
   Future<Review> fetchReviews(CookieRequest request) async {
     final response = await request.postJson(
-        "http://127.0.0.1:8000/ratereview/menu/data",
+        "https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/ratereview/menu/data",
         jsonEncode(<String, String>{
           'id': widget.id.toString(),
         }));
     Review reviewData = Review.fromJson(response);
-    _reviewResults = reviewData.results;
-    _avgRatings = _calculateAverageRating(_reviewResults);
+    setState(() {
+      _reviewResults = reviewData.results;
+      _avgRatings =
+          _calculateAverageRating(_reviewResults); // Update avg ratings
+    });
     return reviewData;
   }
 
@@ -72,17 +85,7 @@ class _ReviewPageState extends State<ReviewPage> {
     final username = request.getJsonData()['username'];
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Menu Review',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.white, // Warna teks
-          ),
-        ),
-        backgroundColor: Colors.orange,
-      ),
+      appBar: Navbar(),
       backgroundColor: Color(0xFFFFFBF2),
       body: SingleChildScrollView(
         child: Padding(
@@ -90,6 +93,18 @@ class _ReviewPageState extends State<ReviewPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: 10),
+              Center(
+                child: Text(
+                  'Menu Review',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 15),
               // Menu Review Section
               Container(
                 width: double.infinity,
@@ -174,7 +189,7 @@ class _ReviewPageState extends State<ReviewPage> {
                       ),
                       child: Center(
                         child: Text(
-                          'Price: Rp ${widget.price}',
+                          'Price : Rp ${NumberFormat('#,###', 'id_ID').format(widget.price)}',
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -326,7 +341,7 @@ class _ReviewPageState extends State<ReviewPage> {
                                 // If the form is valid, proceed with the submission
                                 try {
                                   final response = await request.postJson(
-                                    "http://127.0.0.1:8000/ratereview/menu-submit-flutter/",
+                                    "https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/ratereview/menu-submit-flutter/",
                                     jsonEncode(<String, String>{
                                       'id': widget.id.toString(),
                                       'rating': _rating.toString(),
@@ -392,7 +407,7 @@ class _ReviewPageState extends State<ReviewPage> {
               ),
               SizedBox(height: 10),
               FutureBuilder(
-                future: fetchReviews(request),
+                future: _futureReviews,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:wara_warung_mobile/screens/savedmenu.dart';
+import 'package:wara_warung_mobile/screens/wishlistpage.dart';
 import 'package:wara_warung_mobile/widgets/navbar.dart';
 import 'package:wara_warung_mobile/widgets/bottomnavbar.dart';
 import 'dart:convert';
@@ -41,8 +44,8 @@ class _UserDashboardState extends State<UserDashboard> {
 
   // Fetch user data from Django
   void _fetchUserData(CookieRequest request) async {
-    final response = await request
-        .get("http://127.0.0.1:8000/user_dashboard/get-user-dashboard-data/");
+    final response = await request.get(
+        "https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/user_dashboard/get-user-dashboard-data/");
 
     if (response != null) {
       setState(() {
@@ -70,9 +73,9 @@ class _UserDashboardState extends State<UserDashboard> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: const Text(
+          title: Text(
             'Edit Details',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -87,20 +90,21 @@ class _UserDashboardState extends State<UserDashboard> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
+              child: Text(
                 'Cancel',
-                style:
-                    TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                style: GoogleFonts.poppins(
+                    color: Colors.red, fontWeight: FontWeight.bold),
               ),
             ),
             ElevatedButton(
-              onPressed: () => _saveChanges(context), // Pass the dialog's context
+              onPressed: () =>
+                  _saveChanges(context), // Pass the dialog's context
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orangeAccent,
               ),
-              child: const Text(
+              child: Text(
                 'Save Changes',
-                style: TextStyle(color: Colors.white),
+                style: GoogleFonts.poppins(color: Colors.white),
               ),
             ),
           ],
@@ -117,7 +121,7 @@ class _UserDashboardState extends State<UserDashboard> {
     try {
       // Send the updated user data to Django
       final response = await request.postJson(
-        "http://127.0.0.1:8000/user_dashboard/update-user/",
+        "https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/user_dashboard/update-user/",
         jsonEncode({
           'email': _emailController.text,
           'phone_number': _phoneController.text,
@@ -164,8 +168,8 @@ class _UserDashboardState extends State<UserDashboard> {
 
     try {
       final response = await request.postJson(
-        "http://127.0.0.1:8000/user_dashboard/delete/",
-        jsonEncode({}), 
+        "https://jeremia-rangga-warawarung.pbp.cs.ui.ac.id/user_dashboard/delete/",
+        jsonEncode({}),
       );
 
       if (response['status'] == 'success') {
@@ -182,7 +186,9 @@ class _UserDashboardState extends State<UserDashboard> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Failed to delete account: ${response['message']}")),
+            SnackBar(
+                content:
+                    Text("Failed to delete account: ${response['message']}")),
           );
         }
       }
@@ -204,7 +210,7 @@ class _UserDashboardState extends State<UserDashboard> {
         const SizedBox(height: 10),
         Text(
           label,
-          style: const TextStyle(
+          style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             fontSize: 14,
           ),
@@ -248,116 +254,138 @@ class _UserDashboardState extends State<UserDashboard> {
 
   @override
   Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: Navbar(),
-    bottomNavigationBar: const BottomNavbar(),
-    backgroundColor: const Color(0xFFFDF1E6), // Light peach background
-    body: SingleChildScrollView(
-      child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 20),
-              // Page Title
-              const Text(
-                'My Account',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
+    return Scaffold(
+      appBar: Navbar(),
+      bottomNavigationBar: const BottomNavbar(),
+      backgroundColor: const Color(0xFFFDF1E6), // Light peach background
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 20),
+            // Page Title
+            Text(
+              'My Account',
+              style: GoogleFonts.poppins(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 20),
-              // Profile Section
-              Container(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    const CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.black26,
-                      child: Icon(
-                        Icons.person,
-                        size: 60,
-                        color: Colors.black,
-                      ),
+            ),
+            const SizedBox(height: 20),
+            // Profile Section
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  const CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.black26,
+                    child: Icon(
+                      Icons.person,
+                      size: 60,
+                      color: Colors.black,
                     ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Welcome,',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      username,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.black54,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Center(
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              menuItem('See Menu Plans', Icons.menu_book),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              menuItem('See Wishlist', Icons.favorite),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Account Details Section
-              Container(
-                padding: const EdgeInsets.all(20),
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFE4B3), Color(0xFFFFD0B3)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
                   ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 10,
-                      offset: Offset(0, 5),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Welcome,',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Account Details',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  ),
+                  Text(
+                    username,
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: Colors.black54,
                     ),
-                    const SizedBox(height: 20),
-                    _detailField('Email:', email),
-                    _detailField('Phone Number:', phoneNumber),
-                    _detailField('Date of Birth:', dateOfBirth),
-                    _detailField('Address:', address),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  ),
+                  const SizedBox(height: 20),
+                  Center(
+                    child: Column(
                       children: [
-                        ElevatedButton(
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => SavedMenuPage()),
+                                );
+                              },
+                              child:
+                                  menuItem('Saved Menu Plans', Icons.menu_book),
+                            )
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => WishlistPage(
+                                            menu_id: -1,
+                                          )),
+                                );
+                              },
+                              child: menuItem('Saved Wishlist', Icons.favorite),
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Account Details Section
+            Container(
+              padding: const EdgeInsets.all(20),
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFFE4B3), Color(0xFFFFD0B3)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 10,
+                    offset: Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Account Details',
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _detailField('Email:', email),
+                  _detailField('Phone Number:', phoneNumber),
+                  _detailField('Date of Birth:', dateOfBirth),
+                  _detailField('Address:', address),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment
+                        .spaceEvenly, // Distribusi tombol secara merata
+                    children: [
+                      Flexible(
+                        child: ElevatedButton(
                           onPressed: _openEditForm, // Open Edit Form
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orangeAccent,
@@ -365,18 +393,24 @@ class _UserDashboardState extends State<UserDashboard> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 12),
+                                horizontal: 12, vertical: 10),
                           ),
-                          child: const Text(
-                            'Edit Details',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Edit Details',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
-                        ElevatedButton(
+                      ),
+                      const SizedBox(width: 10), // Jarak antar tombol
+                      Flexible(
+                        child: ElevatedButton(
                           onPressed: () {
                             // Show a confirmation dialog before deleting the account
                             showDialog(
@@ -384,19 +418,28 @@ class _UserDashboardState extends State<UserDashboard> {
                               builder: (BuildContext context) {
                                 return AlertDialog(
                                   title: const Text("Confirm Deletion"),
-                                  content: const Text("Are you sure you want to delete your account? This action cannot be undone."),
+                                  content: const Text(
+                                      "Are you sure you want to delete your account? This action cannot be undone."),
                                   actions: [
                                     TextButton(
-                                      onPressed: () => Navigator.of(context).pop(),
-                                      child: const Text("Cancel", style: TextStyle(color: Colors.red)),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(),
+                                      child: Text("Cancel",
+                                          style: GoogleFonts.poppins(
+                                              color: Colors.red)),
                                     ),
                                     ElevatedButton(
                                       onPressed: () {
-                                        Navigator.of(context).pop(); // Close the dialog
-                                        _deleteAccount(context);     // Call the delete account method
+                                        Navigator.of(context)
+                                            .pop(); // Close the dialog
+                                        _deleteAccount(
+                                            context); // Call the delete account method
                                       },
-                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-                                      child: const Text("Delete", style: TextStyle(color: Colors.white)),
+                                      style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.redAccent),
+                                      child: Text("Delete",
+                                          style: GoogleFonts.poppins(
+                                              color: Colors.white)),
                                     ),
                                   ],
                                 );
@@ -408,28 +451,33 @@ class _UserDashboardState extends State<UserDashboard> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 10),
                           ),
-                          child: const Text(
-                            'Delete Account',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Delete Account',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              // Add spacing below the container
-              const SizedBox(height: 40),
-            ],
-          ),
+            ),
+            // Add spacing below the container
+            const SizedBox(height: 40),
+          ],
         ),
-      );
+      ),
+    );
   }
 
   Widget menuItem(String title, IconData icon) {
@@ -439,7 +487,7 @@ class _UserDashboardState extends State<UserDashboard> {
         const SizedBox(width: 6),
         Text(
           title,
-          style: const TextStyle(
+          style: GoogleFonts.poppins(
             fontSize: 16,
             color: Colors.orangeAccent,
             fontWeight: FontWeight.bold,
@@ -457,7 +505,7 @@ class _UserDashboardState extends State<UserDashboard> {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: GoogleFonts.poppins(
               fontWeight: FontWeight.bold,
               fontSize: 14,
             ),
